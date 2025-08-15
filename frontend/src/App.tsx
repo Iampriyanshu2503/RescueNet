@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Header from './components/common/Header'; // Add this import
+import Header from './components/common/Header';
 import LoginPage from './pages/LoginPage';
 import FoodBanquetSelection from './components/auth/RoleSelector';
 import DonorDashboard from './components/donor/DonorDashboard';
