@@ -13,10 +13,10 @@ export default function FoodBanquetSelection() {
             navigate('/donor-register');
         }
         else if (role === 'recipient') {
-            navigate('/recipient-dashboard');
+            navigate('/recipient-register');
         }
         else if (role === 'volunteer') {
-            navigate('/volunteer-dashboard');
+            navigate('/volunteer-register');
         }
     };
 

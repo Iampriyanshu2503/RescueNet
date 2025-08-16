@@ -19,6 +19,10 @@ export default function FoodBanquetLogin() {
         }, 2000);
     };
 
+    const handleSignUp = () => {
+        navigate('/select-role');
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-2">
             {/* Main Container */}
@@ -129,7 +133,9 @@ export default function FoodBanquetLogin() {
                     <div className="text-center mt-4">
                         <p className="text-gray-600">
                             Don't have an account?{' '}
-                            <button className="text-green-500 hover:text-green-600 font-medium transition-colors">
+                            <button
+                                onClick={handleSignUp}
+                                className="text-green-500 hover:text-green-600 font-medium transition-colors">
                                 Sign Up
                             </button>
                         </p>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Mail, Phone, MapPin, Heart, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, MapPin, HandHeart, Eye, EyeOff, Clock, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 type FormData = {
@@ -11,6 +11,9 @@ type FormData = {
     confirmPassword: string;
     address: string;
     organization: string;
+    availability: string[];
+    hasVehicle: boolean;
+    experience: string;
 };
 
 type FormErrors = {
@@ -21,10 +24,11 @@ type FormErrors = {
     password?: string;
     confirmPassword?: string;
     address?: string;
+    availability?: string;
     submit?: string;
 };
 
-export default function DonorRegisterForm() {
+export default function VolunteerRegisterForm() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -37,14 +41,37 @@ export default function DonorRegisterForm() {
         password: '',
         confirmPassword: '',
         address: '',
-        organization: ''
+        organization: '',
+        availability: [],
+        hasVehicle: false,
+        experience: 'beginner'
     });
+    const handleBack = () => {
+        navigate(-1);
+    };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+    const availabilityOptions = [
+        'Monday Morning',
+        'Monday Evening',
+        'Tuesday Morning',
+        'Tuesday Evening',
+        'Wednesday Morning',
+        'Wednesday Evening',
+        'Thursday Morning',
+        'Thursday Evening',
+        'Friday Morning',
+        'Friday Evening',
+        'Saturday',
+        'Sunday'
+    ];
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        const checked = type === 'checkbox' && 'checked' in e.target ? (e.target as HTMLInputElement).checked : undefined;
+
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         }));
 
         // Clear error when user starts typing
@@ -54,6 +81,15 @@ export default function DonorRegisterForm() {
                 [name]: ''
             }));
         }
+    };
+
+    const handleAvailabilityChange = (timeSlot: string) => {
+        setFormData(prev => ({
+            ...prev,
+            availability: prev.availability.includes(timeSlot)
+                ? prev.availability.filter(slot => slot !== timeSlot)
+                : [...prev.availability, timeSlot]
+        }));
     };
 
     const validateForm = (): boolean => {
@@ -76,6 +112,9 @@ export default function DonorRegisterForm() {
             newErrors.confirmPassword = 'Passwords do not match';
         }
         if (!formData.address) newErrors.address = 'Address is required';
+        if (formData.availability.length === 0) {
+            newErrors.availability = 'Please select at least one availability slot';
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -100,12 +139,8 @@ export default function DonorRegisterForm() {
         }
     };
 
-    const handleBack = () => {
-        navigate(-1);
-    };
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-violet-100 p-4">
             {/* Back Button */}
             <button
                 onClick={handleBack}
@@ -118,11 +153,11 @@ export default function DonorRegisterForm() {
                 <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Heart className="w-8 h-8 text-white" />
+                        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <HandHeart className="w-8 h-8 text-white" />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Join as Donor</h1>
-                        <p className="text-gray-600 text-sm">Help share food with those in need</p>
+                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Join as Volunteer</h1>
+                        <p className="text-gray-600 text-sm">Help deliver food to those in need</p>
                     </div>
 
                     {/* Form */}
@@ -140,7 +175,7 @@ export default function DonorRegisterForm() {
                                         name="firstName"
                                         value={formData.firstName}
                                         onChange={handleInputChange}
-                                        className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                         placeholder="John"
                                     />
                                 </div>
@@ -156,7 +191,7 @@ export default function DonorRegisterForm() {
                                     name="lastName"
                                     value={formData.lastName}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                     placeholder="Doe"
                                 />
                                 {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
@@ -175,7 +210,7 @@ export default function DonorRegisterForm() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                     placeholder="john@example.com"
                                 />
                             </div>
@@ -194,7 +229,7 @@ export default function DonorRegisterForm() {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleInputChange}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                     placeholder="+1 (555) 123-4567"
                                 />
                             </div>
@@ -212,7 +247,7 @@ export default function DonorRegisterForm() {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -236,7 +271,7 @@ export default function DonorRegisterForm() {
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                                 placeholder="••••••••"
                             />
                             {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
@@ -254,11 +289,65 @@ export default function DonorRegisterForm() {
                                     value={formData.address}
                                     onChange={handleInputChange}
                                     rows={2}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm resize-none"
                                     placeholder="123 Main St, City, State 12345"
                                 />
                             </div>
                             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                        </div>
+
+                        {/* Experience Level */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Volunteer Experience
+                            </label>
+                            <select
+                                name="experience"
+                                value={formData.experience}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm appearance-none bg-white"
+                            >
+                                <option value="beginner">New to volunteering</option>
+                                <option value="some">Some experience</option>
+                                <option value="experienced">Very experienced</option>
+                            </select>
+                        </div>
+
+                        {/* Transportation */}
+                        <div>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="hasVehicle"
+                                    checked={formData.hasVehicle}
+                                    onChange={handleInputChange}
+                                    className="rounded text-purple-500 focus:ring-purple-500"
+                                />
+                                <Car className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm text-gray-700">I have reliable transportation</span>
+                            </label>
+                        </div>
+
+                        {/* Availability */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                <Clock className="w-4 h-4 inline mr-2" />
+                                Availability *
+                            </label>
+                            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                                {availabilityOptions.map((slot) => (
+                                    <label key={slot} className="flex items-center space-x-2 cursor-pointer text-xs">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.availability.includes(slot)}
+                                            onChange={() => handleAvailabilityChange(slot)}
+                                            className="rounded text-purple-500 focus:ring-purple-500 h-3 w-3"
+                                        />
+                                        <span className="text-gray-700">{slot}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {errors.availability && <p className="text-red-500 text-xs mt-1">{errors.availability}</p>}
                         </div>
 
                         {/* Organization (Optional) */}
@@ -271,8 +360,8 @@ export default function DonorRegisterForm() {
                                 name="organization"
                                 value={formData.organization}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                placeholder="Restaurant, Company, etc."
+                                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                placeholder="Company, School, etc."
                             />
                         </div>
 
@@ -287,7 +376,7 @@ export default function DonorRegisterForm() {
                         <button
                             onClick={handleSubmit}
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-lg"
+                            className="w-full bg-gradient-to-r from-purple-500 to-violet-600 text-white py-3 px-4 rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-lg"
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center">
@@ -295,7 +384,7 @@ export default function DonorRegisterForm() {
                                     Creating Account...
                                 </div>
                             ) : (
-                                'Create Donor Account'
+                                'Create Volunteer Account'
                             )}
                         </button>
 
@@ -305,7 +394,7 @@ export default function DonorRegisterForm() {
                                 Already have an account?{' '}
                                 <button
                                     type="button"
-                                    className="text-blue-500 hover:text-blue-600 font-medium"
+                                    className="text-purple-500 hover:text-purple-600 font-medium"
                                 >
                                     Sign in here
                                 </button>
