@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Heart, HelpCircle, Link2 } from 'lucide-react';
+import { ArrowLeft, Heart, HelpCircle, Link2, Truck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
 
 export default function FoodBanquetSelection() {
     const navigate = useNavigate();
@@ -11,11 +10,13 @@ export default function FoodBanquetSelection() {
         setSelectedRole(role);
         console.log(`Selected role: ${role}`);
         if (role === 'donor') {
-            navigate('/donor-dashboard');
+            navigate('/donor-register');
         }
         else if (role === 'recipient') {
-            // You can create a recipient dashboard later
             navigate('/recipient-dashboard');
+        }
+        else if (role === 'volunteer') {
+            navigate('/volunteer-dashboard');
         }
     };
 
@@ -34,88 +35,110 @@ export default function FoodBanquetSelection() {
             </button>
 
             {/* Main Content */}
-            <div className="flex flex-col items-center justify-center min-h-screen px-4">
-                {/* Header */}
-                <div className="text-center mb-12">
-                    {/* Logo */}
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                        <Heart className="w-8 h-8 text-white" />
+            <div className="flex items-center justify-center min-h-screen px-4 py-8">
+                {/* Main Card Container */}
+                <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-4xl">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        {/* Logo */}
+                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <Heart className="w-8 h-8 text-white" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Food Banquet</h1>
+                        <p className="text-gray-600">How would you like to help today?</p>
                     </div>
 
-                    <h1 className="text-3xl font-bold text-gray-800 mb-3">Food Banquet</h1>
-                    <p className="text-gray-600 text-lg">How would you like to help today?</p>
-                </div>
+                    {/* Role Selection Cards - Grid Layout */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        {/* Donor Card */}
+                        <div
+                            onClick={() => handleRoleSelect('donor')}
+                            className="bg-gray-50 rounded-xl p-6 cursor-pointer transform hover:scale-105 transition-all duration-200 hover:shadow-lg border-2 border-transparent hover:border-blue-200"
+                        >
+                            <div className="text-center">
+                                {/* Icon */}
+                                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Heart className="w-8 h-8 text-white" />
+                                </div>
 
-                {/* Role Selection Cards */}
-                <div className="w-full max-w-md space-y-4">
-                    {/* Donor Card */}
-                    <div
-                        onClick={() => handleRoleSelect('donor')}
-                        className="bg-white rounded-2xl p-6 shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-200 hover:shadow-xl"
-                    >
-                        <div className="flex items-start space-x-4">
-                            {/* Icon */}
-                            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Heart className="w-6 h-6 text-white" />
-                            </div>
+                                {/* Content */}
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">I'm a Donor</h3>
+                                <p className="text-gray-600 text-sm mb-4">Share surplus food with those in need</p>
 
-                            {/* Content */}
-                            <div className="flex-1">
-                                <h3 className="text-xl font-bold text-gray-800 mb-1">I'm a Donor</h3>
-                                <p className="text-gray-600 text-sm">Share surplus food with those in need</p>
-
-                                {/* Progress Dots */}
-                                <div className="flex items-center space-x-2 mt-4">
+                                {/* Progress Indicator */}
+                                <div className="flex justify-center items-center space-x-1">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <Link2 className="w-4 h-4 text-gray-400" />
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <Link2 className="w-3 h-3 text-gray-400" />
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recipient Card */}
+                        <div
+                            onClick={() => handleRoleSelect('recipient')}
+                            className="bg-gray-50 rounded-xl p-6 cursor-pointer transform hover:scale-105 transition-all duration-200 hover:shadow-lg border-2 border-transparent hover:border-green-200"
+                        >
+                            <div className="text-center">
+                                {/* Icon */}
+                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Link2 className="w-8 h-8 text-white" />
+                                </div>
+
+                                {/* Content */}
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">I'm a Recipient</h3>
+                                <p className="text-gray-600 text-sm mb-4">Find and request available food donations</p>
+
+                                {/* Progress Indicator */}
+                                <div className="flex justify-center items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <Heart className="w-3 h-3 text-gray-400" />
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Volunteer Card */}
+                        <div
+                            onClick={() => handleRoleSelect('volunteer')}
+                            className="bg-gray-50 rounded-xl p-6 cursor-pointer transform hover:scale-105 transition-all duration-200 hover:shadow-lg border-2 border-transparent hover:border-purple-200"
+                        >
+                            <div className="text-center">
+                                {/* Icon */}
+                                <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Truck className="w-8 h-8 text-white" />
+                                </div>
+
+                                {/* Content */}
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">I'm a Volunteer</h3>
+                                <p className="text-gray-600 text-sm mb-4">Help deliver food from donors to recipients</p>
+
+                                {/* Progress Indicator */}
+                                <div className="flex justify-center items-center space-x-1">
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <Truck className="w-3 h-3 text-gray-400" />
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-300 rounded-full"></div>
+                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Recipient Card */}
-                    <div
-                        onClick={() => handleRoleSelect('recipient')}
-                        className="bg-white rounded-2xl p-6 shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-200 hover:shadow-xl"
-                    >
-                        <div className="flex items-start space-x-4">
-                            {/* Icon */}
-                            <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Link2 className="w-6 h-6 text-white" />
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1">
-                                <h3 className="text-xl font-bold text-gray-800 mb-1">I'm a Recipient</h3>
-                                <p className="text-gray-600 text-sm">Find and request available food donations</p>
-
-                                {/* Progress Dots */}
-                                <div className="flex items-center space-x-2 mt-4">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <Heart className="w-4 h-4 text-gray-400" />
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-4 h-0.5 bg-gray-300 rounded-full"></div>
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                </div>
-                            </div>
-                        </div>
+                    {/* Bottom Message */}
+                    <div className="text-center">
+                        <p className="text-gray-500 text-sm">Building a community where no food goes to waste</p>
                     </div>
-                </div>
-
-                {/* Bottom Message */}
-                <div className="text-center mt-12">
-                    <p className="text-gray-500 text-sm">Building a community where no food goes to waste</p>
                 </div>
             </div>
 

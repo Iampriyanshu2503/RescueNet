@@ -9,6 +9,7 @@ import WasteToEnergyForm from './components/donor/OrganicWasteForm';
 import FoodListingsPage from './components/recepient/RecipientDashboard';
 import RequestConfirmationPage from './components/recepient/FoodFeed';
 import ProfilePage from './pages/ProfilePage';
+import DonorRegisterForm from './components/auth/DonorRegisterForm';
 
 import './App.css';
 
@@ -17,7 +18,7 @@ function AppContent() {
   const location = useLocation();
 
   // Define routes where you DON'T want to show the header
-  const hideHeaderRoutes = ['/login', '/select-role'];
+  const hideHeaderRoutes = ['/login', '/select-role', '/donor-register'];
 
   // Check if current route should hide the header
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
@@ -35,6 +36,7 @@ function AppContent() {
         <Route path="/waste-to-energy" element={<WasteToEnergyForm />} />
         <Route path="/recipient-dashboard" element={<FoodListingsPage />} />
         <Route path="/food-listings/:id" element={<RequestConfirmationPage />} />
+        <Route path="/donor-register" element={<DonorRegisterForm />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/" element={
           <div className="min-h-screen flex items-center justify-center">
