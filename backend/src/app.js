@@ -1,88 +1,60 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
-const hpp = require('hpp');
+const dotenv = require('dotenv');
+const donorRoutes = require('./routes/donors');
 
-const errorHandler = require('./middleware/errorHandler');
-const { logger } = require('./utils/database');
-
-// Import routes (we'll create these next)
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const foodRoutes = require('./routes/foods');
-const claimRoutes = require('./routes/claims');
-const analyticsRoutes = require('./routes/analytics');
+// Load environment variables
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet());
-
-// CORS configuration
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api/', limiter);
+// Database connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food-banquet', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-// Body parser middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Routes
+app.use('/api/donors', donorRoutes);
 
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
-
-// Data sanitization against XSS
-app.use(xss());
-
-// Prevent parameter pollution
-app.use(hpp());
-
-// Logging middleware
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-} else {
-    app.use(morgan('combined', {
-        stream: { write: message => logger.info(message.trim()) }
-    }));
-}
-
-// Health check endpoint
+// Basic health check
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         success: true,
-        message: 'Server is running',
+        message: 'Food Banquet API is running',
         timestamp: new Date().toISOString()
     });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/foods', foodRoutes);
-app.use('/api/claims', claimRoutes);
-app.use('/api/analytics', analyticsRoutes);
-
-// Handle undefined routes
-app.all('*', (req, res) => {
-    res.status(404).json({
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
         success: false,
-        message: `Route ${req.originalUrl} not found`
+        message: 'Something went wrong!'
     });
 });
 
-// Global error handler
-app.use(errorHandler);
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
+});
 
-module.exports = app;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
