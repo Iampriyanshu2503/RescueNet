@@ -23,7 +23,7 @@ function AppContent() {
   const location = useLocation();
 
   // Define routes where you DON'T want to show the header
-  const hideHeaderRoutes = ['/login', '/select-role', '/donor-register', '/recipient-register', '/volunteer-register', '/donor-analytics'];
+  const hideHeaderRoutes = ['/', '/login', '/select-role', '/donor-register', '/recipient-register', '/volunteer-register', '/donor-analytics'];
 
   // Check if current route should hide the header
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
