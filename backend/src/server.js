@@ -1,66 +1,97 @@
-require('dotenv').config();
-const http = require('http');
-const socketIo = require('socket.io');
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const donorRoutes = require('./routes/donorRoutes');
 
-const app = require('./app');
-const { connectDB, logger } = require('./utils/database');
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
+// MongoDB connection
+const connectDB = async () => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_redistribution', {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+        console.error('Database connection error:', error);
+        process.exit(1);
+    }
+};
 
 // Connect to database
 connectDB();
 
-// Create HTTP server
-const server = http.createServer(app);
+// Routes
+app.use('/api/donors', donorRoutes);
 
-// Initialize Socket.io
-const io = socketIo(server, {
-    cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-        methods: ['GET', 'POST']
-    }
-});
-
-// Socket.io connection handling
-io.on('connection', (socket) => {
-    logger.info(`User connected: ${socket.id}`);
-
-    // Join user to their specific room for personalized notifications
-    socket.on('join', (userId) => {
-        socket.join(`user_${userId}`);
-        logger.info(`User ${userId} joined room user_${userId}`);
-    });
-
-    // Join location-based rooms for nearby notifications
-    socket.on('join_location', (location) => {
-        socket.join(`location_${location}`);
-        logger.info(`User joined location room: ${location}`);
-    });
-
-    socket.on('disconnect', () => {
-        logger.info(`User disconnected: ${socket.id}`);
+// Health check route
+app.get('/api/health', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Food Redistribution System API is running',
+        timestamp: new Date().toISOString()
     });
 });
 
-// Make io accessible to other parts of the app
-app.set('io', io);
-
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-    logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-    logger.error('Unhandled Promise Rejection:', err);
-    server.close(() => {
-        process.exit(1);
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
     });
 });
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-    logger.error('Uncaught Exception:', err);
-    process.exit(1);
+// Global error handler
+app.use((error, req, res, next) => {
+    console.error('Global error handler:', error);
+
+    res.status(error.status || 500).json({
+        success: false,
+        message: error.message || 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+    });
 });
 
-module.exports = server;
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    mongoose.connection.close(() => {
+        console.log('MongoDB connection closed.');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received. Shutting down gracefully...');
+    mongoose.connection.close(() => {
+        console.log('MongoDB connection closed.');
+        process.exit(0);
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+module.exports = app;

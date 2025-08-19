@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Users,
     TrendingUp,
@@ -13,230 +13,389 @@ import {
     MapPin,
     Bell,
     Settings,
-    Search
+    Search,
+    Package,
+    Calendar,
+    UserCheck,
+    CheckCircle,
+    AlertCircle,
+    Info,
+    BarChart3,
+    Sparkles
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
+interface StatCardProps {
+    icon: React.ElementType;
+    label: string;
+    value: string | number;
+    trend?: string;
+    color: string;
+    iconColor: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, color, iconColor }) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    return (
+        <div
+            className={`relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${isHovered ? 'bg-white/90' : ''}`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <div className="flex items-center justify-between">
+                <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
+                    {trend && (
+                        <div className="flex items-center gap-1 text-xs">
+                            <TrendingUp size={12} className="text-green-500" />
+                            <span className="text-green-600 font-medium">{trend}</span>
+                        </div>
+                    )}
+                </div>
+                <div className={`w-14 h-14 ${color} rounded-2xl flex items-center justify-center shadow-lg`}>
+                    <Icon className={`w-7 h-7 ${iconColor}`} />
+                </div>
+            </div>
+
+            {/* Animated background effect */}
+            <div className={`absolute -right-8 -top-8 w-24 h-24 rounded-full ${color} bg-opacity-5 transition-all duration-300 ${isHovered ? 'scale-150 bg-opacity-10' : ''
+                }`} />
+        </div>
+    );
+};
+
+const ActionButton: React.FC<{
+    icon: React.ElementType;
+    label: string;
+    color: string;
+    onClick?: () => void;
+    variant?: 'primary' | 'secondary' | 'accent';
+}> = ({ icon: Icon, label, color, onClick, variant = 'primary' }) => {
+    const baseClasses = "flex items-center gap-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 hover:scale-105 shadow-lg";
+    const variants = {
+        primary: `${color} text-white hover:opacity-90`,
+        secondary: "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white border border-white/20",
+        accent: "bg-gradient-to-r from-orange-400 to-orange-600 text-white hover:from-orange-500 hover:to-orange-700"
+    };
+
+    return (
+        <button
+            onClick={onClick}
+            className={`${baseClasses} ${variants[variant]}`}
+        >
+            <Icon size={18} />
+            <span>{label}</span>
+        </button>
+    );
+};
+
+const ListingCard: React.FC<{
+    title: string;
+    servings: number;
+    timeAgo: string;
+    timeLeft: string;
+    views: number;
+    requests: number;
+    status: string;
+    image: string;
+}> = ({ title, servings, timeAgo, timeLeft, views, requests, status, image }) => {
+    return (
+        <div className="bg-white/70 backdrop-blur-sm border border-white/20 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:bg-white/80">
+            <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                        {image}
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                            <span className="flex items-center gap-1">
+                                <Users size={14} />
+                                {servings} servings
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Clock size={14} />
+                                {timeAgo}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                                <Eye size={12} />
+                                {views} views
+                            </div>
+                            <div className="flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                                <MessageSquare size={12} />
+                                {requests} requests
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    {status === 'expired' ? (
+                        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                            Expired
+                        </span>
+                    ) : status === 'active' ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            Active
+                        </span>
+                    ) : (
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                            Completed
+                        </span>
+                    )}
+                    <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <MoreVertical size={16} className="text-gray-400" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ActivityItem: React.FC<{
+    type: string;
+    message: string;
+    time: string;
+    icon: React.ElementType;
+    color: string;
+}> = ({ message, time, icon: Icon, color }) => {
+    return (
+        <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors">
+            <div className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center`}>
+                <Icon size={16} className={color} />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900">{message}</p>
+                <p className="text-xs text-gray-500 mt-1">{time}</p>
+            </div>
+        </div>
+    );
+};
 
 export default function DonorDashboard() {
-    const [activeTab, setActiveTab] = useState('dashboard');
-    const navigate = useNavigate();
+    const [currentTime, setCurrentTime] = useState(new Date());
 
-    const handleAddSurplus = () => {
-        navigate('/add-surplus-food');
-    };
-    const handleWasteToEnergy = () => {
-        navigate('/waste-to-energy');
-    };
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     const stats = [
-        { icon: Users, label: 'Meals Served', value: '2,340', color: 'bg-green-500', iconColor: 'text-white' },
-        { icon: TrendingUp, label: 'Total Donations', value: '89', color: 'bg-blue-500', iconColor: 'text-white' },
-        { icon: Star, label: 'Avg Rating', value: '4.8/5.0', color: 'bg-orange-500', iconColor: 'text-white' },
-        { icon: Recycle, label: 'Food Saved (in Kgs)', value: '2.1 tons', color: 'bg-purple-500', iconColor: 'text-white' }
+        {
+            icon: Package,
+            label: 'Total Donations',
+            value: 156,
+            trend: '+12% this month',
+            color: 'bg-gradient-to-r from-blue-500 to-blue-600',
+            iconColor: 'text-white'
+        },
+        {
+            icon: Users,
+            label: 'People Served',
+            value: '2,340',
+            trend: '+8% vs last month',
+            color: 'bg-gradient-to-r from-green-500 to-green-600',
+            iconColor: 'text-white'
+        },
+        {
+            icon: Calendar,
+            label: 'Active Listings',
+            value: 8,
+            trend: '2 expiring soon',
+            color: 'bg-gradient-to-r from-orange-500 to-orange-600',
+            iconColor: 'text-white'
+        },
+        {
+            icon: Truck,
+            label: 'Pickup Requests',
+            value: 23,
+            trend: '5 new today',
+            color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+            iconColor: 'text-white'
+        }
     ];
 
     const activeListings = [
         {
-            id: 1,
-            title: 'Indian Curry Buffet',
+            title: 'Fresh Sandwiches from Café',
             servings: 25,
-            timeAgo: '1 hour ago',
-            timeLeft: '2 hours left',
+            timeAgo: '2 hours ago',
+            timeLeft: '3 hours left',
             views: 12,
             requests: 3,
             status: 'active',
-            image: '🍛'
+            image: '🥪'
         },
         {
-            id: 2,
-            title: 'Fresh Salad Bar',
+            title: 'Leftover Pizza Slices',
             servings: 15,
-            timeAgo: '30 mins ago',
-            timeLeft: '4 hours left',
-            views: 8,
-            requests: 1,
+            timeAgo: '4 hours ago',
+            timeLeft: '7 requests',
+            views: 18,
+            requests: 7,
             status: 'active',
-            image: '🥗'
+            image: '🍕'
         },
         {
-            id: 3,
-            title: 'Dessert Platters',
+            title: 'Conference Lunch Boxes',
             servings: 20,
-            timeAgo: '2 hours ago',
-            timeLeft: 'expired',
-            views: 5,
-            requests: 0,
-            status: 'expired',
-            image: '🍰'
+            timeAgo: '6 hours ago',
+            timeLeft: 'Completed',
+            views: 25,
+            requests: 15,
+            status: 'completed',
+            image: '🍱'
         }
     ];
 
     const recentActivity = [
         {
-            id: 1,
-            type: 'request',
-            message: 'New request from Hope Foundation',
-            time: '5 mins ago',
-            icon: MessageSquare,
-            color: 'text-blue-500'
-        },
-        {
-            id: 2,
-            type: 'pickup',
-            message: 'Food picked up by Raj Kumar',
-            time: '1 hour ago',
-            icon: Truck,
+            type: 'completed',
+            message: 'Pizza pickup completed',
+            details: 'Picked up by Maria from Campus NGO - 18 slices distributed',
+            time: '2 hours ago',
+            icon: CheckCircle,
             color: 'text-green-500'
         },
         {
-            id: 3,
-            type: 'review',
-            message: 'New 5-star review received',
-            time: '2 hours ago',
-            icon: Star,
+            type: 'request',
+            message: 'New pickup request',
+            details: 'Student Union requesting sandwich pickup for tonight',
+            time: '5 minutes ago',
+            icon: Info,
+            color: 'text-blue-500'
+        },
+        {
+            type: 'reminder',
+            message: 'Event reminder',
+            details: 'Campus Food Drive event tomorrow at 2 PM',
+            time: '1 hour ago',
+            icon: Calendar,
             color: 'text-orange-500'
         }
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50">
             {/* Header */}
-            <header className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Restaurant Info */}
-                        <div className="flex items-center space-x-4">
-                            <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">SG</span>
-                            </div>
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-900">Spice Garden Restaurant</h1>
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-gray-500">4.8</span>
-                                    <div className="flex space-x-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
-                                        ))}
-                                    </div>
-                                    <span className="text-sm text-gray-500">(127)</span>
-                                </div>
-                            </div>
+            <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Donor Dashboard
+                            </h1>
+                            <p className="text-gray-600 text-sm mt-1">Welcome back! Ready to make a difference today?</p>
                         </div>
 
-                        {/* Header Actions */}
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={handleAddSurplus}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                            >
-                                <Plus className="w-4 h-4" />
-                                <span>Add Surplus</span>
-                            </button>
-                            <button
-                                onClick={handleWasteToEnergy}
-                                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                            >
-                                <Truck className="w-4 h-4" />
-                                <span>Waste Pickup</span>
-                            </button>
-                            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                                <Bell className="w-5 h-5" />
-                            </button>
-                            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                                <Settings className="w-5 h-5" />
-                            </button>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <ActionButton
+                                    icon={BarChart3}
+                                    label="Analytics"
+                                    color="bg-blue-500"
+                                    variant="secondary"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
+                                    <Bell size={20} />
+                                </button>
+                                <button className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all">
+                                    Logout
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-6 py-8">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {stats.map((stat, index) => (
-                        <div key={index} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                                </div>
-                                <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
-                                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                                </div>
-                            </div>
-                        </div>
+                        <StatCard key={index} {...stat} />
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Active Listings */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    {/* Quick Actions */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Sparkles size={20} className="text-purple-600" />
+                            <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-6">Common tasks for food donors</p>
+
+                        <div className="space-y-3">
+                            <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                                <Plus size={18} />
+                                <span className="font-medium">Add New Surplus Food</span>
+                            </button>
+                            <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                                <Truck size={18} />
+                                <span className="font-medium">Request Waste Pickup</span>
+                            </button>
+                            <button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                                <Bell size={18} />
+                                <span className="font-medium">Add Event</span>
+                            </button>
+                            <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                                <Settings size={18} />
+                                <span className="font-medium">Test Event Reminder</span>
+                            </button>
+                        </div>
+
+                        <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Calendar size={16} className="text-green-600" />
+                                <span className="text-sm font-medium text-gray-900">Event Calendar</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">Smart event-based food redistribution</p>
+                            <div className="flex items-center gap-2 text-xs text-green-700 bg-green-100 px-3 py-2 rounded-lg">
+                                <CheckCircle size={12} />
+                                <span>Campus calendar connected</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">Automatically reminded about 24 upcoming events this month.</p>
+                        </div>
+                    </div>
+
+                    {/* Current Listings */}
+                    <div className="lg:col-span-2 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+                        <div className="p-6 border-b border-gray-200/50">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold text-gray-900">Active Listings</h2>
-                                <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                                    2 Active
-                                </button>
+                                <h2 className="text-lg font-semibold text-gray-900">Your Current Listings</h2>
+                                <span className="text-sm text-blue-600 font-medium">Manage your active food donations</span>
                             </div>
                         </div>
                         <div className="p-6 space-y-4">
-                            {activeListings.map((listing) => (
-                                <div key={listing.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-start space-x-4">
-                                            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
-                                                {listing.image}
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="font-semibold text-gray-900 mb-1">{listing.title}</h3>
-                                                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                                                    <span>{listing.servings} servings</span>
-                                                    <span>•</span>
-                                                    <span>{listing.timeAgo}</span>
-                                                </div>
-                                                <div className="flex items-center space-x-4 mt-2">
-                                                    <div className="flex items-center space-x-1">
-                                                        <Eye className="w-4 h-4 text-gray-400" />
-                                                        <span className="text-sm text-gray-600">{listing.views} views</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-1">
-                                                        <MessageSquare className="w-4 h-4 text-gray-400" />
-                                                        <span className="text-sm text-gray-600">{listing.requests} requests</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            {listing.status === 'expired' ? (
-                                                <span className="text-red-500 text-sm font-medium">Expired</span>
-                                            ) : (
-                                                <span className="text-orange-500 text-sm font-medium">{listing.timeLeft}</span>
-                                            )}
-                                            <button className="p-1 hover:bg-gray-100 rounded">
-                                                <MoreVertical className="w-4 h-4 text-gray-400" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                            {activeListings.map((listing, index) => (
+                                <ListingCard key={index} {...listing} />
                             ))}
                         </div>
                     </div>
 
                     {/* Recent Activity */}
-                    <div className="bg-white rounded-2xl shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+                        <div className="p-6 border-b border-gray-200/50">
                             <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                            <p className="text-sm text-gray-600">Your latest donation activities</p>
                         </div>
-                        <div className="p-6 space-y-4">
-                            {recentActivity.map((activity) => (
-                                <div key={activity.id} className="flex items-start space-x-3">
-                                    <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center`}>
-                                        <activity.icon className={`w-4 h-4 ${activity.color}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-gray-900">{activity.message}</p>
-                                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                        <div className="p-4 space-y-2">
+                            {recentActivity.map((activity, index) => (
+                                <div key={index} className="p-3 hover:bg-gray-50/80 rounded-xl transition-colors">
+                                    <div className="flex items-start gap-3">
+                                        <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center`}>
+                                            <activity.icon size={14} className={activity.color} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                                            <p className="text-xs text-gray-600 mt-1">{activity.details}</p>
+                                            <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -245,35 +404,49 @@ export default function DonorDashboard() {
                 </div>
 
                 {/* Impact Section */}
-                <div className="mt-8 bg-white rounded-2xl shadow-sm">
-                    <div className="p-6 border-b border-gray-200">
+                <div className="mt-8 bg-gradient-to-r from-white/70 to-white/50 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+                    <div className="p-6 border-b border-gray-200/50">
                         <h2 className="text-lg font-semibold text-gray-900">Your Impact</h2>
                     </div>
-                    <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="text-center">
-                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Users className="w-8 h-8 text-white" />
+                                <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <Users className="w-10 h-10 text-white" />
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900 mb-1">2,340</div>
-                                <div className="text-sm text-gray-600">People Fed</div>
+                                <div className="text-3xl font-bold text-gray-900 mb-2">2,340</div>
+                                <div className="text-sm text-gray-600">People Fed This Month</div>
                             </div>
                             <div className="text-center">
-                                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Recycle className="w-8 h-8 text-white" />
+                                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <Recycle className="w-10 h-10 text-white" />
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900 mb-1">1.2 tons</div>
-                                <div className="text-sm text-gray-600">CO₂ Reduced</div>
+                                <div className="text-3xl font-bold text-gray-900 mb-2">1.2 tons</div>
+                                <div className="text-sm text-gray-600">CO₂ Emissions Reduced</div>
                             </div>
                         </div>
-                        <div className="mt-6 p-4 bg-green-50 rounded-lg">
-                            <p className="text-center text-sm text-gray-600">
-                                Thank you for making a positive impact on our community and environment!
-                            </p>
+                        <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200">
+                            <div className="text-center">
+                                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <Star className="w-6 h-6 text-white" />
+                                </div>
+                                <p className="text-sm font-medium text-gray-900 mb-1">Thank you for making a positive impact!</p>
+                                <p className="text-xs text-gray-600">Your contributions are helping build a more sustainable community.</p>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Real-time Status */}
+                <div className="fixed bottom-6 right-6">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-white/30 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium text-gray-700">
+                            Live • {currentTime.toLocaleTimeString()}
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
+};
