@@ -1,9 +1,509 @@
-import React from 'react'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  ShoppingCart, 
+  Bell, 
+  Shield, 
+  BarChart3, 
+  Calendar, 
+  Users,
+  CheckCircle,
+  Leaf,
+  Clock,
+  Target,
+  TrendingUp,
+  Handshake,
+  UserPlus,
+  HeartHandshake
+} from 'lucide-react';
 
 const HomePage = () => {
-    return (
-        <div>HomePage</div>
-    )
-}
+  const navigate = useNavigate();
 
-export default HomePage
+  const handleJoinPlatform = () => {
+    navigate('/login');
+  };
+
+  const handleStartDonating = () => {
+    navigate('/login');
+  };
+
+  const handleFindFood = () => {
+    navigate('/login');
+  };
+
+  const handleBecomeVolunteer = () => {
+    navigate('/login');
+  };
+
+  const handleLearnMore = () => {
+    navigate('/login');
+  };
+
+  const handleGetStarted = () => {
+    navigate('/login');
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        </div>
+        
+        {/* Hero Content */}
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl">
+          <div className="mb-4 inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+            🥗 Join Sustainable Food Solutions
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            Byte Banquet
+          </h1>
+          
+          <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
+            Join our mission to feed people, not bins.
+          </p>
+          
+          <p className="text-lg mb-10 text-gray-300 max-w-3xl mx-auto">
+            Revolutionizing campus food management through smart redistribution. Connect 
+            surplus food from cafeterias, retailers, and events with those who need it most.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button 
+              onClick={handleStartDonating}
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              🌱 START DONATING
+            </button>
+            <button 
+              onClick={handleFindFood}
+              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-900 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300"
+            >
+              🔍 FIND FOOD NEARBY
+            </button>
+          </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold mb-2">15,000+</div>
+              <div className="text-gray-300 text-sm md:text-base">Meals Saved</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold mb-2">2,500</div>
+              <div className="text-gray-300 text-sm md:text-base">Active Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold mb-2">80%</div>
+              <div className="text-gray-300 text-sm md:text-base">Waste Reduced</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+              Key Features Designed for Impact
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Powerful Tools for <span className="text-green-500">Zero Waste</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our comprehensive platform provides everything you need to reduce food waste 
+              and build stronger communities through smart redistribution technology.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                <ShoppingCart className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Intuitive Listing Platform</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Easily post available surplus food with details on type, quantity, and pickup time for quick redistribution.
+              </p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+                <Bell className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Instant Notifications</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Receive real-time alerts on new food listings or successful pickups, ensuring timely action and reduced waste.
+              </p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                <Shield className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Safety & Compliance</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Ensure food safety with our rating for allergens, dietary restrictions, and adherence to campus guidelines.
+              </p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
+                <BarChart3 className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Impact Analytics</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Track your contribution with detailed metrics on food saved, environmental impact, and community impact.
+              </p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+                <Calendar className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Event Integration</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Seamlessly integrate with campus calendars to manage food distribution for large gatherings.
+              </p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-6">
+                <Users className="w-6 h-6 text-cyan-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Community Tools</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Connect with fellow students, staff, and local NGOs, fostering a collaborative zero-waste ecosystem.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Process Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Simple Process, Maximum Impact
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our streamlined four-step process ensures that surplus food reaches those who 
+              need it most, while providing transparency and tracking for continuous improvement.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-green-500 transition-colors duration-300">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+                    <ShoppingCart className="w-5 h-5 text-white group-hover:text-green-500" />
+                  </div>
+                </div>
+                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  1
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">List</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Organizations and retailers easily list their excess food on our platform, including type, quantity, and pickup time.
+              </p>
+            </div>
+            
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-yellow-500 transition-colors duration-300">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+                    <Bell className="w-5 h-5 text-white group-hover:text-yellow-500" />
+                  </div>
+                </div>
+                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  2
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Notify</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Interested students, staff, and NGOs get instant notifications about newly available food, maximizing reach.
+              </p>
+            </div>
+            
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-orange-500 transition-colors duration-300">
+                  <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+                    <CheckCircle className="w-5 h-5 text-white group-hover:text-orange-500" />
+                  </div>
+                </div>
+                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  3
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Pickup</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Food is picked up by recipients or volunteers, with real-time coordination by local NGOs.
+              </p>
+            </div>
+            
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-purple-500 transition-colors duration-300">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+                    <BarChart3 className="w-5 h-5 text-white group-hover:text-purple-500" />
+                  </div>
+                </div>
+                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  4
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Track</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Every transaction is tracked for impact metrics, helping achieve zero-waste goals.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                  <Leaf className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Vision</h3>
+              </div>
+              <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                A world where no meal is wasted and every person has access to 
+                nutritious food, creating sustainable communities built on urgency and care.
+              </p>
+            </div>
+            
+            <div>
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Community</h3>
+              </div>
+              <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                Building stronger communities through shared purpose: 
+                connecting food donors, recipients, and volunteers.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Section */}
+      <section className="py-20 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Our Impact</h2>
+            <p className="text-xl text-green-100 max-w-3xl mx-auto">
+              Together, we're making a real difference in fighting food waste and supporting 
+              our community. Here's what we've achieved so far.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <ShoppingCart className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold mb-2">2.5M+</div>
+              <div className="text-green-100">Meals Saved</div>
+              <div className="text-sm text-green-200 mt-1">from waste</div>
+            </div>
+            
+            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Leaf className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold mb-2">1,200</div>
+              <div className="text-green-100">Tons CO2 Reduced</div>
+              <div className="text-sm text-green-200 mt-1">environmental impact</div>
+            </div>
+            
+            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold mb-2">500M+</div>
+              <div className="text-green-100">Liters Water Saved</div>
+              <div className="text-sm text-green-200 mt-1">water conservation</div>
+            </div>
+            
+            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Handshake className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold mb-2">150+</div>
+              <div className="text-green-100">Partner Organizations</div>
+              <div className="text-sm text-green-200 mt-1">active community partners</div>
+            </div>
+          </div>
+          
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 text-center">
+            <h3 className="text-2xl font-bold mb-4">Every Action Counts</h3>
+            <p className="text-green-100 max-w-2xl mx-auto">
+              These numbers represent real meals reaching real families, environmental protection, and 
+              communities coming together to create positive change.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Be Part of the Change
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Every action, no matter how small, contributes to our mission. Choose how you'd 
+              like to make a difference today.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <HeartHandshake className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Donate Food</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Share your surplus food with those who need it most.
+              </p>
+              <button 
+                onClick={handleStartDonating}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+              >
+                START DONATING
+              </button>
+            </div>
+            
+            <div className="text-center bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <UserPlus className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Volunteer</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Join our community of carriers and make direct impact.
+              </p>
+              <button 
+                onClick={handleBecomeVolunteer}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+              >
+                BECOME A CARRIER
+              </button>
+            </div>
+            
+            <div className="text-center bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Handshake className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Partner With Us</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Collaborate with us as an organization or business.
+              </p>
+              <button 
+                onClick={handleLearnMore}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+              >
+                LEARN MORE
+              </button>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl p-12 text-center text-white">
+            <h3 className="text-3xl md:text-4xl font-bold mb-6">Ready to Make an Impact?</h3>
+            <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
+              Join thousands of community members who are already rescuing meals and 
+              restoring dignity.
+            </p>
+            <button 
+              onClick={handleGetStarted}
+              className="bg-white text-green-600 hover:bg-gray-100 px-8 py-4 rounded-xl font-bold text-lg transition-colors inline-flex items-center"
+            >
+              GET STARTED TODAY
+              <Target className="w-5 h-5 ml-2" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <div className="col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="bg-green-500 rounded-full p-2">
+                  <Leaf className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold">Byte Banquet</span>
+              </div>
+              <p className="text-gray-400 mb-6 max-w-md">
+                Join our mission to feed people, not bins. 
+                Transforming campus food systems through smart 
+                redistribution technology.
+              </p>
+              <div className="flex space-x-4">
+                <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer">
+                  <span className="text-xl">📧</span>
+                </div>
+                <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer">
+                  <span className="text-xl">📞</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-6">Platform</h4>
+              <ul className="space-y-4 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Impact</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Safety Guidelines</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-6">Community</h4>
+              <ul className="space-y-4 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Campus Partners</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">NGO Network</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Success Stories</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Resources</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+            <p>© 2024 Byte Banquet. All rights reserved. | Feed People, Not Bins</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default HomePage;
