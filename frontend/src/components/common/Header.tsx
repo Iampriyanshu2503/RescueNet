@@ -67,7 +67,7 @@ export default function Header() {
                             <div className="bg-green-500 rounded-full p-2">
                                 <Heart className="w-6 h-6 text-white" />
                             </div>
-                            <span className="text-xl font-bold text-gray-900">Food Banquet</span>
+                            <span className="text-xl font-bold text-gray-900">Byte Banquet</span>
                         </div>
 
                         {/* Search Bar - Desktop */}
