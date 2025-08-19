@@ -48,16 +48,7 @@ function AppContent() {
         <Route path="/volunteer-register" element={<VolunteerRegisterForm />} />
         <Route path="/donor-profile" element={<DonorProfilePage />} />
 
-        <Route path="/" element={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">Welcome to Food Banquet</h1>
-              <a href="/login" className="text-green-500 hover:underline">
-                Go to Login Page
-              </a>
-            </div>
-          </div>
-        } />
+        <Route path="/" element={<HomePage />} />
       </Routes>
     </div>
   );
