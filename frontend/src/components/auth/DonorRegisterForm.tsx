@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Mail, Phone, MapPin, Heart, Eye, EyeOff, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from "../../context/AuthDonorContext"; // Adjust the import path as necessary
+
 
 type FormData = {
     firstName: string;
@@ -42,6 +45,7 @@ const ORGANIZATION_OPTIONS = [
 
 export default function DonorRegisterForm() {
     const navigate = useNavigate();
+    const auth = useContext(AuthContext);
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<FormErrors>({});
@@ -117,17 +121,18 @@ export default function DonorRegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                // Registration successful
-                alert('Registration successful! Please check your email for verification.');
-                // Optionally redirect to login page or dashboard
-                // navigate('/login');
-            } else {
-                // Handle specific error cases
+                auth?.login({
+                    id: data._id,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                });
+                navigate("/donor-profile");
+            }
+            else {
                 if (data.code === 11000) {
-                    // Duplicate email error
                     setErrors({ email: 'Email address is already registered' });
                 } else if (data.errors) {
-                    // Validation errors from mongoose
                     const newErrors: FormErrors = {};
                     Object.keys(data.errors).forEach(key => {
                         newErrors[key as keyof FormErrors] = data.errors[key].message;

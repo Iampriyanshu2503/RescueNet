@@ -10,7 +10,7 @@ import ListEventFood from './components/donor/AddEvent';
 import WasteToEnergyForm from './components/donor/OrganicWasteForm';
 import FoodListingsPage from './components/recepient/RecipientDashboard';
 import RequestConfirmationPage from './components/recepient/FoodFeed';
-import ProfilePage from './pages/ProfilePage';
+import DonorProfilePage from './components/donor/DonorProfile';
 import DonorRegisterForm from './components/auth/DonorRegisterForm';
 import RecipientRegisterForm from './components/auth/RecipientRegisterForm';
 import VolunteerRegisterForm from './components/auth/VolunteerRegisterForm';
@@ -45,7 +45,7 @@ function AppContent() {
         <Route path="/donor-register" element={<DonorRegisterForm />} />
         <Route path="/recipient-register" element={<RecipientRegisterForm />} />
         <Route path="/volunteer-register" element={<VolunteerRegisterForm />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/donor-profile" element={<DonorProfilePage />} />
 
         <Route path="/" element={
           <div className="min-h-screen flex items-center justify-center">
