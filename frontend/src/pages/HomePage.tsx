@@ -211,7 +211,7 @@ const HomePage = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#4285F4' }}>
                 <ShoppingCart className="w-8 h-8 text-white" />
               </div>
