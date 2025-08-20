@@ -221,52 +221,52 @@ const HomePage = () => {
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#34A853' }}>
+            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#34A853' }}>
                 <Bell className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Instant Notifications</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Instant Notifications</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">
                 Receive real-time alerts on new food listings or successful pickups, ensuring timely action and reduced waste.
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#9C27B0' }}>
+            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#9C27B0' }}>
                 <Shield className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Safety & Compliance</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Safety & Compliance</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">
                 Ensure food safety with our rating for allergens, dietary restrictions, and adherence to campus guidelines.
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#FFB300' }}>
+            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#FFB300' }}>
                 <BarChart3 className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Impact Analytics</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Impact Analytics</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">
                 Track your contribution with detailed metrics on food saved, environmental impact, and community impact.
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#F44336' }}>
+            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#F44336' }}>
                 <Calendar className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Event Integration</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Event Integration</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">
                 Seamlessly integrate with campus calendars to manage food distribution for large gatherings.
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#00BCD4' }}>
+            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#00BCD4' }}>
                 <Users className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Community Tools</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Community Tools</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">
                 Connect with fellow students, staff, and local NGOs, fostering a collaborative zero-waste ecosystem.
               </p>
             </div>
