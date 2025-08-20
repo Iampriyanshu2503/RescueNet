@@ -43,6 +43,7 @@ function AppContent() {
         <Route path="/list-event-food" element={<ListEventFood />} />
         <Route path="/waste-to-energy" element={<WasteToEnergyForm />} />
         <Route path="/recipient-dashboard" element={<FoodListingsPage />} />
+        <Route path="/volunteer-dashboard" element={<VolunteerDashboard />} />
         <Route path="/food-listings/:id" element={<RequestConfirmationPage />} />
         <Route path="/donor-register" element={<DonorRegisterForm />} />
         <Route path="/recipient-register" element={<RecipientRegisterForm />} />
