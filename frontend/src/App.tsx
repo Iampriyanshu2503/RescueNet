@@ -51,6 +51,8 @@ function AppContent() {
         <Route path="/recipient-register" element={<RecipientRegisterForm />} />
         <Route path="/volunteer-register" element={<VolunteerRegisterForm />} />
         <Route path="/donor-profile" element={<DonorProfilePage />} />
+        <Route path="/recipient-profile" element={<RecipientProfile />} />
+        <Route path="/pickup-history" element={<PickupHistory />} />
 
         <Route path="/" element={<HomePage />} />
       </Routes>
