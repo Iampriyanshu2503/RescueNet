@@ -46,6 +46,46 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F7F7' }}>
+      {/* Top Header Navigation */}
+      <header className="bg-white shadow-sm border-b border-gray-200 relative z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="rounded-full p-2" style={{ backgroundColor: '#34A853' }}>
+                <Leaf className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">Byte Banquet</span>
+            </div>
+
+            {/* Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">Features</a>
+              <a href="#how-it-works" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">How It Works</a>
+              <a href="#impact" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">Impact</a>
+              <button
+                onClick={handleGetStarted}
+                className="text-white px-6 py-2 rounded-lg font-semibold transition-colors hover:opacity-90"
+                style={{ backgroundColor: '#34A853' }}
+              >
+                Get Started
+              </button>
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button
+                onClick={handleGetStarted}
+                className="text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors hover:opacity-90"
+                style={{ backgroundColor: '#34A853' }}
+              >
+                JOIN PLATFORM
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 overflow-hidden">
         {/* Background Image */}
