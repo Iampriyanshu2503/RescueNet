@@ -45,7 +45,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: '#F7F7F7' }}>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 overflow-hidden">
         {/* Background Image */}
@@ -63,7 +63,7 @@ const HomePage = () => {
         
         {/* Hero Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl">
-          <div className="mb-4 inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+          <div className="mb-4 inline-flex items-center text-white px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: '#34A853' }}>
             🥗 Join Sustainable Food Solutions
           </div>
           
@@ -83,7 +83,8 @@ const HomePage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button 
               onClick={handleStartDonating}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:opacity-90"
+              style={{ backgroundColor: '#34A853' }}
             >
               🌱 START DONATING
             </button>
@@ -114,14 +115,14 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20" style={{ backgroundColor: '#F9FAFB' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center text-white px-4 py-2 rounded-full text-sm font-medium mb-6" style={{ backgroundColor: '#34A853' }}>
               Key Features Designed for Impact
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Powerful Tools for <span className="text-green-500">Zero Waste</span>
+              Powerful Tools for <span style={{ color: '#34A853' }}>Zero Waste</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Our comprehensive platform provides everything you need to reduce food waste 
@@ -130,9 +131,9 @@ const HomePage = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
-                <ShoppingCart className="w-6 h-6 text-blue-600" />
+            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
+                <ShoppingCart className="w-6 h-6" style={{ color: '#4285F4' }} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Intuitive Listing Platform</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -140,9 +141,9 @@ const HomePage = () => {
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-6">
-                <Bell className="w-6 h-6 text-green-600" />
+            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                <Bell className="w-6 h-6" style={{ color: '#34A853' }} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Instant Notifications</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -150,9 +151,9 @@ const HomePage = () => {
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
-                <Shield className="w-6 h-6 text-purple-600" />
+            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
+                <Shield className="w-6 h-6" style={{ color: '#4285F4' }} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Safety & Compliance</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -160,9 +161,9 @@ const HomePage = () => {
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
-                <BarChart3 className="w-6 h-6 text-orange-600" />
+            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#FFB300', opacity: 0.1 }}>
+                <BarChart3 className="w-6 h-6" style={{ color: '#FFB300' }} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Impact Analytics</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -170,9 +171,9 @@ const HomePage = () => {
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-6">
-                <Calendar className="w-6 h-6 text-red-600" />
+            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                <Calendar className="w-6 h-6" style={{ color: '#34A853' }} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Event Integration</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -180,9 +181,9 @@ const HomePage = () => {
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-6">
-                <Users className="w-6 h-6 text-cyan-600" />
+            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
+                <Users className="w-6 h-6" style={{ color: '#4285F4' }} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Community Tools</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -194,7 +195,7 @@ const HomePage = () => {
       </section>
 
       {/* Process Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20" style={{ backgroundColor: '#F9FAFB' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -208,13 +209,13 @@ const HomePage = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-green-500 transition-colors duration-300">
-                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
-                    <ShoppingCart className="w-5 h-5 text-white group-hover:text-green-500" />
+              <div className="relative mb-12">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#34A853' }}>
+                    <ShoppingCart className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#34A853' }}>
                   1
                 </div>
               </div>
@@ -225,13 +226,13 @@ const HomePage = () => {
             </div>
             
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-yellow-500 transition-colors duration-300">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
-                    <Bell className="w-5 h-5 text-white group-hover:text-yellow-500" />
+              <div className="relative mb-12">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#FFB300', opacity: 0.1 }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#FFB300' }}>
+                    <Bell className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#FFB300' }}>
                   2
                 </div>
               </div>
@@ -242,13 +243,13 @@ const HomePage = () => {
             </div>
             
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-orange-500 transition-colors duration-300">
-                  <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
-                    <CheckCircle className="w-5 h-5 text-white group-hover:text-orange-500" />
+              <div className="relative mb-12">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#4285F4' }}>
+                    <CheckCircle className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#4285F4' }}>
                   3
                 </div>
               </div>
@@ -259,13 +260,13 @@ const HomePage = () => {
             </div>
             
             <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-purple-500 transition-colors duration-300">
-                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center group-hover:bg-white transition-colors duration-300">
-                    <BarChart3 className="w-5 h-5 text-white group-hover:text-purple-500" />
+              <div className="relative mb-12">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#34A853' }}>
+                    <BarChart3 className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#34A853' }}>
                   4
                 </div>
               </div>
@@ -279,13 +280,13 @@ const HomePage = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20" style={{ backgroundColor: '#F4FDF7' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
-                  <Leaf className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                  <Leaf className="w-6 h-6" style={{ color: '#34A853' }} />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">Vision</h3>
               </div>
@@ -297,8 +298,8 @@ const HomePage = () => {
             
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-                  <Users className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
+                  <Users className="w-6 h-6" style={{ color: '#4285F4' }} />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">Community</h3>
               </div>
@@ -312,7 +313,7 @@ const HomePage = () => {
       </section>
 
       {/* Impact Section */}
-      <section className="py-20 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+      <section className="py-20 text-white" style={{ background: 'linear-gradient(to right, #34A853, #2E8B57)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Our Impact</h2>
@@ -371,7 +372,7 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20" style={{ backgroundColor: '#F9FAFB' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -383,10 +384,10 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <HeartHandshake className="w-8 h-8 text-green-600" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                <HeartHandshake className="w-8 h-8" style={{ color: '#34A853' }} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Donate Food</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
@@ -394,15 +395,33 @@ const HomePage = () => {
               </p>
               <button 
                 onClick={handleStartDonating}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
+                style={{ backgroundColor: '#34A853' }}
               >
                 START DONATING
               </button>
             </div>
             
-            <div className="text-center bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <UserPlus className="w-8 h-8 text-blue-600" />
+            <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#FFB300', opacity: 0.1 }}>
+                <ShoppingCart className="w-8 h-8" style={{ color: '#FFB300' }} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Find Food</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Discover available food donations in your area.
+              </p>
+              <button 
+                onClick={handleFindFood}
+                className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
+                style={{ backgroundColor: '#FFB300' }}
+              >
+                FIND FOOD
+              </button>
+            </div>
+            
+            <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
+                <UserPlus className="w-8 h-8" style={{ color: '#4285F4' }} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Volunteer</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
@@ -410,15 +429,16 @@ const HomePage = () => {
               </p>
               <button 
                 onClick={handleBecomeVolunteer}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
+                style={{ backgroundColor: '#4285F4' }}
               >
                 BECOME A CARRIER
               </button>
             </div>
             
-            <div className="text-center bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Handshake className="w-8 h-8 text-purple-600" />
+            <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
+                <Handshake className="w-8 h-8" style={{ color: '#34A853' }} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Partner With Us</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
@@ -426,14 +446,15 @@ const HomePage = () => {
               </p>
               <button 
                 onClick={handleLearnMore}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
+                style={{ backgroundColor: '#34A853' }}
               >
                 LEARN MORE
               </button>
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl p-12 text-center text-white">
+          <div className="rounded-3xl p-12 text-center text-white" style={{ background: 'linear-gradient(to right, #34A853, #2E8B57)' }}>
             <h3 className="text-3xl md:text-4xl font-bold mb-6">Ready to Make an Impact?</h3>
             <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
               Join thousands of community members who are already rescuing meals and 
@@ -441,7 +462,8 @@ const HomePage = () => {
             </p>
             <button 
               onClick={handleGetStarted}
-              className="bg-white text-green-600 hover:bg-gray-100 px-8 py-4 rounded-xl font-bold text-lg transition-colors inline-flex items-center"
+              className="bg-white hover:bg-gray-100 px-8 py-4 rounded-xl font-bold text-lg transition-colors inline-flex items-center"
+              style={{ color: '#34A853' }}
             >
               GET STARTED TODAY
               <Target className="w-5 h-5 ml-2" />
@@ -456,7 +478,7 @@ const HomePage = () => {
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="bg-green-500 rounded-full p-2">
+                <div className="rounded-full p-2" style={{ backgroundColor: '#34A853' }}>
                   <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-2xl font-bold">Byte Banquet</span>
