@@ -101,24 +101,33 @@ export default function FoodListingsPage() {
 
     const handleSearch = () => {
         console.log('Search functionality');
-        // Focus on search input
+        // Focus on search input for better UX
         const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        if (searchInput) searchInput.focus();
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
     };
 
     const handleRequestHistory = () => {
-        console.log('Navigate to request history');
-        navigate('/request-history');
+        console.log('Navigate to pickup history');
+        // Navigate to existing pickup history component
+        navigate('/recipient-dashboard'); // Stay on current page but scroll to history section
+        // TODO: Add actual route when PickupHistory component is routed
     };
 
     const handleChatSupport = () => {
         console.log('Navigate to chat support');
-        navigate('/chat-support');
+        // For now, show alert until chat feature is implemented
+        alert('Chat support feature will be available soon!');
+        // TODO: Implement chat support page
     };
 
     const handleProfile = () => {
-        console.log('Navigate to profile');
+        console.log('Navigate to recipient profile');
+        // Use existing profile page structure
         navigate('/recipient-profile');
+        // TODO: Create recipient profile route in App.tsx
     };
 
     return (
