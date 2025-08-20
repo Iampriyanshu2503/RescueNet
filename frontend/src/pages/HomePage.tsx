@@ -58,7 +58,7 @@ const HomePage = () => {
             backgroundRepeat: 'no-repeat'
           }}
         >
-          <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+          <div className="absolute inset-0 bg-black bg-opacity-60"></div>
         </div>
         
 
