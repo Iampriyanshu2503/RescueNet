@@ -385,7 +385,7 @@ const HomePage = () => {
       </section>
 
       {/* Impact Section */}
-      <section className="py-20 text-white" style={{ background: 'linear-gradient(to right, #34A853, #2E8B57)' }}>
+      <section id="impact" className="py-16 text-white" style={{ background: 'linear-gradient(to right, #34A853, #2E8B57)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Our Impact</h2>
