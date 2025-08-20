@@ -123,9 +123,7 @@ export default function FoodListingsPage() {
 
     const handleProfile = () => {
         console.log('Navigate to recipient profile');
-        // Use existing profile page structure
         navigate('/recipient-profile');
-        // TODO: Create recipient profile route in App.tsx
     };
 
     return (
