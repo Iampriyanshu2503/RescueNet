@@ -99,9 +99,26 @@ export default function FoodListingsPage() {
         navigate('/waste-to-energy');
     };
 
-    const navigateToAddFood = () => {
-        console.log('Navigate to add surplus food page');
-        navigate('/add-surplus-food');
+    const handleSearch = () => {
+        console.log('Search functionality');
+        // Focus on search input
+        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+        if (searchInput) searchInput.focus();
+    };
+
+    const handleRequestHistory = () => {
+        console.log('Navigate to request history');
+        navigate('/request-history');
+    };
+
+    const handleChatSupport = () => {
+        console.log('Navigate to chat support');
+        navigate('/chat-support');
+    };
+
+    const handleProfile = () => {
+        console.log('Navigate to profile');
+        navigate('/recipient-profile');
     };
 
     return (
@@ -137,11 +154,17 @@ export default function FoodListingsPage() {
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-3 gap-2 py-4">
-                        <button className="flex flex-col items-center p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                        <button
+                            onClick={handleRequestHistory}
+                            className="flex flex-col items-center p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                        >
                             <FileText className="w-6 h-6 mb-2" />
                             <span className="text-sm font-medium">Request History</span>
                         </button>
-                        <button className="flex flex-col items-center p-4 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition-colors">
+                        <button
+                            onClick={handleChatSupport}
+                            className="flex flex-col items-center p-4 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                        >
                             <MessageCircle className="w-6 h-6 mb-2" />
                             <span className="text-sm font-medium">Chat Support</span>
                         </button>
@@ -166,13 +189,6 @@ export default function FoodListingsPage() {
                             3 Available
                         </p>
                     </div>
-                    <button
-                        onClick={navigateToAddFood}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Food
-                    </button>
                 </div>
 
                 {/* Search and Filters */}
@@ -309,23 +325,38 @@ export default function FoodListingsPage() {
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
                 <div className="max-w-6xl mx-auto">
                     <div className="grid grid-cols-5 gap-1">
-                        <button className="flex flex-col items-center py-2 px-1 text-blue-600">
+                        <button
+                            onClick={() => navigate('/recipient-dashboard')}
+                            className="flex flex-col items-center py-2 px-1 text-blue-600"
+                        >
                             <Home className="w-5 h-5 mb-1" />
                             <span className="text-xs font-medium">Home</span>
                         </button>
-                        <button className="flex flex-col items-center py-2 px-1 text-gray-600">
+                        <button
+                            onClick={handleSearch}
+                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
                             <Search className="w-5 h-5 mb-1" />
                             <span className="text-xs font-medium">Search</span>
                         </button>
-                        <button className="flex flex-col items-center py-2 px-1 text-gray-600">
+                        <button
+                            onClick={handleRequestHistory}
+                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
                             <FileText className="w-5 h-5 mb-1" />
                             <span className="text-xs font-medium">Requests</span>
                         </button>
-                        <button className="flex flex-col items-center py-2 px-1 text-gray-600">
+                        <button
+                            onClick={handleChatSupport}
+                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
                             <MessageCircle className="w-5 h-5 mb-1" />
                             <span className="text-xs font-medium">Chat</span>
                         </button>
-                        <button className="flex flex-col items-center py-2 px-1 text-gray-600">
+                        <button
+                            onClick={handleProfile}
+                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
                             <User className="w-5 h-5 mb-1" />
                             <span className="text-xs font-medium">Profile</span>
                         </button>
