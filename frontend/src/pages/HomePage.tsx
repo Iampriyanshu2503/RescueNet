@@ -69,27 +69,56 @@ const HomePage = () => {
             </div>
 
             {/* Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">Features</a>
-              <a href="#how-it-works" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">How It Works</a>
-              <a href="#impact" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">Impact</a>
+            <nav className="hidden lg:flex items-center space-x-6">
+              <button
+                onClick={() => scrollToSection('features')}
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+              >
+                Features
+              </button>
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => scrollToSection('impact')}
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+              >
+                Impact
+              </button>
               <button
                 onClick={handleGetStarted}
-                className="text-white px-6 py-2 rounded-lg font-semibold transition-colors hover:opacity-90"
+                className="text-white px-6 py-2 rounded-lg font-semibold transition-colors hover:opacity-90 ml-4"
                 style={{ backgroundColor: '#34A853' }}
               >
                 Get Started
               </button>
             </nav>
 
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            {/* Mobile Navigation */}
+            <div className="lg:hidden flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => scrollToSection('features')}
+                  className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
+                >
+                  Features
+                </button>
+                <button
+                  onClick={() => scrollToSection('impact')}
+                  className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
+                >
+                  Impact
+                </button>
+              </div>
               <button
                 onClick={handleGetStarted}
                 className="text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors hover:opacity-90"
                 style={{ backgroundColor: '#34A853' }}
               >
-                JOIN PLATFORM
+                Join
               </button>
             </div>
           </div>
