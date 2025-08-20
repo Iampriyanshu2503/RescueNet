@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 export default function SearchResults() {
     const navigate = useNavigate();
-    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleBack = () => {
