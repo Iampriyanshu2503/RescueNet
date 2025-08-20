@@ -10,13 +10,13 @@ export default function FoodBanquetSelection() {
         setSelectedRole(role);
         console.log(`Selected role: ${role}`);
         if (role === 'donor') {
-            navigate('/donor-register');
+            navigate('/donor-dashboard');
         }
         else if (role === 'recipient') {
-            navigate('/recipient-register');
+            navigate('/recipient-dashboard');
         }
         else if (role === 'volunteer') {
-            navigate('/volunteer-register');
+            navigate('/volunteer-dashboard');
         }
     };
 
