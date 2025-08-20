@@ -419,14 +419,14 @@ const HomePage = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                <HeartHandshake className="w-8 h-8" style={{ color: '#34A853' }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853' }}>
+                <HeartHandshake className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Donate Food</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Share your surplus food with those who need it most.
               </p>
-              <button 
+              <button
                 onClick={handleStartDonating}
                 className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
                 style={{ backgroundColor: '#34A853' }}
@@ -434,16 +434,16 @@ const HomePage = () => {
                 START DONATING
               </button>
             </div>
-            
+
             <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#FFB300', opacity: 0.1 }}>
-                <ShoppingCart className="w-8 h-8" style={{ color: '#FFB300' }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#FFB300' }}>
+                <ShoppingCart className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Find Food</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Discover available food donations in your area.
               </p>
-              <button 
+              <button
                 onClick={handleFindFood}
                 className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
                 style={{ backgroundColor: '#FFB300' }}
@@ -451,16 +451,16 @@ const HomePage = () => {
                 FIND FOOD
               </button>
             </div>
-            
+
             <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
-                <UserPlus className="w-8 h-8" style={{ color: '#4285F4' }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4285F4' }}>
+                <UserPlus className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Volunteer</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Join our community of carriers and make direct impact.
               </p>
-              <button 
+              <button
                 onClick={handleBecomeVolunteer}
                 className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
                 style={{ backgroundColor: '#4285F4' }}
@@ -468,16 +468,16 @@ const HomePage = () => {
                 BECOME A CARRIER
               </button>
             </div>
-            
+
             <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                <Handshake className="w-8 h-8" style={{ color: '#34A853' }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853' }}>
+                <Handshake className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Partner With Us</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Collaborate with us as an organization or business.
               </p>
-              <button 
+              <button
                 onClick={handleLearnMore}
                 className="text-white px-6 py-3 rounded-xl font-semibold transition-colors hover:opacity-90"
                 style={{ backgroundColor: '#34A853' }}
