@@ -318,26 +318,26 @@ const HomePage = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                  <Leaf className="w-6 h-6" style={{ color: '#34A853' }} />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#34A853' }}>
+                  <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">Vision</h3>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                A world where no meal is wasted and every person has access to 
+                A world where no meal is wasted and every person has access to
                 nutritious food, creating sustainable communities built on urgency and care.
               </p>
             </div>
-            
+
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
-                  <Users className="w-6 h-6" style={{ color: '#4285F4' }} />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#4285F4' }}>
+                  <Users className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">Community</h3>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                Building stronger communities through shared purpose: 
+                Building stronger communities through shared purpose:
                 connecting food donors, recipients, and volunteers.
               </p>
             </div>
