@@ -130,60 +130,60 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
-                <ShoppingCart className="w-6 h-6" style={{ color: '#4285F4' }} />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#4285F4' }}>
+                <ShoppingCart className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Intuitive Listing Platform</h3>
               <p className="text-gray-600 leading-relaxed">
                 Easily post available surplus food with details on type, quantity, and pickup time for quick redistribution.
               </p>
             </div>
-            
-            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                <Bell className="w-6 h-6" style={{ color: '#34A853' }} />
+
+            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#34A853' }}>
+                <Bell className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Instant Notifications</h3>
               <p className="text-gray-600 leading-relaxed">
                 Receive real-time alerts on new food listings or successful pickups, ensuring timely action and reduced waste.
               </p>
             </div>
-            
-            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
-                <Shield className="w-6 h-6" style={{ color: '#4285F4' }} />
+
+            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#9C27B0' }}>
+                <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Safety & Compliance</h3>
               <p className="text-gray-600 leading-relaxed">
                 Ensure food safety with our rating for allergens, dietary restrictions, and adherence to campus guidelines.
               </p>
             </div>
-            
-            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#FFB300', opacity: 0.1 }}>
-                <BarChart3 className="w-6 h-6" style={{ color: '#FFB300' }} />
+
+            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#FFB300' }}>
+                <BarChart3 className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Impact Analytics</h3>
               <p className="text-gray-600 leading-relaxed">
                 Track your contribution with detailed metrics on food saved, environmental impact, and community impact.
               </p>
             </div>
-            
-            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                <Calendar className="w-6 h-6" style={{ color: '#34A853' }} />
+
+            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#F44336' }}>
+                <Calendar className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Event Integration</h3>
               <p className="text-gray-600 leading-relaxed">
                 Seamlessly integrate with campus calendars to manage food distribution for large gatherings.
               </p>
             </div>
-            
-            <div className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#F4FDF7' }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
-                <Users className="w-6 h-6" style={{ color: '#4285F4' }} />
+
+            <div className="group p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 backdrop-blur-sm" style={{ backgroundColor: 'rgba(244, 253, 247, 0.9)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#00BCD4' }}>
+                <Users className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Community Tools</h3>
               <p className="text-gray-600 leading-relaxed">
