@@ -210,12 +210,10 @@ const HomePage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center group">
               <div className="relative mb-12">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#34A853' }}>
-                    <ShoppingCart className="w-5 h-5 text-white" />
-                  </div>
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#34A853' }}>
+                  <ShoppingCart className="w-10 h-10 text-white" />
                 </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#34A853' }}>
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#34A853' }}>
                   1
                 </div>
               </div>
@@ -224,15 +222,13 @@ const HomePage = () => {
                 Organizations and retailers easily list their excess food on our platform, including type, quantity, and pickup time.
               </p>
             </div>
-            
+
             <div className="text-center group">
               <div className="relative mb-12">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#FFB300', opacity: 0.1 }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#FFB300' }}>
-                    <Bell className="w-5 h-5 text-white" />
-                  </div>
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#FFB300' }}>
+                  <Bell className="w-10 h-10 text-white" />
                 </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#FFB300' }}>
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#FFB300' }}>
                   2
                 </div>
               </div>
@@ -241,15 +237,13 @@ const HomePage = () => {
                 Interested students, staff, and NGOs get instant notifications about newly available food, maximizing reach.
               </p>
             </div>
-            
+
             <div className="text-center group">
               <div className="relative mb-12">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#4285F4', opacity: 0.1 }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#4285F4' }}>
-                    <CheckCircle className="w-5 h-5 text-white" />
-                  </div>
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#4285F4' }}>
+                  <CheckCircle className="w-10 h-10 text-white" />
                 </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#4285F4' }}>
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#4285F4' }}>
                   3
                 </div>
               </div>
@@ -258,15 +252,13 @@ const HomePage = () => {
                 Food is picked up by recipients or volunteers, with real-time coordination by local NGOs.
               </p>
             </div>
-            
+
             <div className="text-center group">
               <div className="relative mb-12">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-colors duration-300" style={{ backgroundColor: '#34A853', opacity: 0.1 }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: '#34A853' }}>
-                    <BarChart3 className="w-5 h-5 text-white" />
-                  </div>
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#9C27B0' }}>
+                  <BarChart3 className="w-10 h-10 text-white" />
                 </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#34A853' }}>
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#9C27B0' }}>
                   4
                 </div>
               </div>
