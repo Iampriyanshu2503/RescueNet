@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Users,
     TrendingUp,
@@ -10,15 +11,11 @@ import {
     MessageSquare,
     MoreVertical,
     Clock,
-    MapPin,
     Bell,
     Settings,
-    Search,
     Package,
     Calendar,
-    UserCheck,
     CheckCircle,
-    AlertCircle,
     Info,
     BarChart3,
     Sparkles
@@ -155,33 +152,46 @@ const ListingCard: React.FC<{
     );
 };
 
-const ActivityItem: React.FC<{
-    type: string;
-    message: string;
-    time: string;
-    icon: React.ElementType;
-    color: string;
-}> = ({ message, time, icon: Icon, color }) => {
-    return (
-        <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-            <div className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center`}>
-                <Icon size={16} className={color} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">{message}</p>
-                <p className="text-xs text-gray-500 mt-1">{time}</p>
-            </div>
-        </div>
-    );
-};
 
 export default function DonorDashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const navigate = useNavigate();
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Navigation handlers
+    const handleAddSurplusFood = () => {
+        console.log('Navigate to add surplus food');
+        navigate('/add-surplus-food');
+    };
+
+    const handleRequestWastePickup = () => {
+        console.log('Navigate to waste pickup request');
+        navigate('/organic-waste-form');
+    };
+
+    const handleAddEvent = () => {
+        console.log('Navigate to add event');
+        navigate('/add-event');
+    };
+
+    const handleTestEventReminder = () => {
+        console.log('Test event reminder functionality');
+        alert('Event reminder test - Notification system working!');
+    };
+
+    const handleAnalytics = () => {
+        console.log('Navigate to analytics dashboard');
+        navigate('/donor-analytics');
+    };
+
+    const handleLogout = () => {
+        console.log('Logout user');
+        navigate('/login');
+    };
 
     const stats = [
         {
@@ -298,13 +308,17 @@ export default function DonorDashboard() {
                                     label="Analytics"
                                     color="bg-blue-500"
                                     variant="secondary"
+                                    onClick={handleAnalytics}
                                 />
                             </div>
                             <div className="flex items-center gap-2">
                                 <button className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
                                     <Bell size={20} />
                                 </button>
-                                <button className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all">
+                                <button
+                                    onClick={handleLogout}
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
+                                >
                                     Logout
                                 </button>
                             </div>
@@ -331,19 +345,31 @@ export default function DonorDashboard() {
                         <p className="text-sm text-gray-600 mb-6">Common tasks for food donors</p>
 
                         <div className="space-y-3">
-                            <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                            <button
+                                onClick={handleAddSurplusFood}
+                                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3"
+                            >
                                 <Plus size={18} />
                                 <span className="font-medium">Add New Surplus Food</span>
                             </button>
-                            <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                            <button
+                                onClick={handleRequestWastePickup}
+                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3"
+                            >
                                 <Truck size={18} />
                                 <span className="font-medium">Request Waste Pickup</span>
                             </button>
-                            <button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                            <button
+                                onClick={handleAddEvent}
+                                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3"
+                            >
                                 <Bell size={18} />
                                 <span className="font-medium">Add Event</span>
                             </button>
-                            <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3">
+                            <button
+                                onClick={handleTestEventReminder}
+                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3"
+                            >
                                 <Settings size={18} />
                                 <span className="font-medium">Test Event Reminder</span>
                             </button>

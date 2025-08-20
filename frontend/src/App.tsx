@@ -16,6 +16,9 @@ import DonorRegisterForm from './components/auth/DonorRegisterForm';
 import RecipientRegisterForm from './components/auth/RecipientRegisterForm';
 import VolunteerRegisterForm from './components/auth/VolunteerRegisterForm';
 import VolunteerDashboard from './components/volunteer/FoodListDashboard';
+import RecipientProfile from './components/recepient/RecipientProfile';
+import PickupHistory from './components/recepient/PickupHistory';
+import SearchResults from './components/recepient/SearchResults';
 
 import './App.css';
 
@@ -49,6 +52,9 @@ function AppContent() {
         <Route path="/recipient-register" element={<RecipientRegisterForm />} />
         <Route path="/volunteer-register" element={<VolunteerRegisterForm />} />
         <Route path="/donor-profile" element={<DonorProfilePage />} />
+        <Route path="/recipient-profile" element={<RecipientProfile />} />
+        <Route path="/pickup-history" element={<PickupHistory />} />
+        <Route path="/search" element={<SearchResults />} />
 
         <Route path="/" element={<HomePage />} />
       </Routes>
