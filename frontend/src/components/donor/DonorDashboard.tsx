@@ -11,15 +11,11 @@ import {
     MessageSquare,
     MoreVertical,
     Clock,
-    MapPin,
     Bell,
     Settings,
-    Search,
     Package,
     Calendar,
-    UserCheck,
     CheckCircle,
-    AlertCircle,
     Info,
     BarChart3,
     Sparkles
@@ -156,25 +152,6 @@ const ListingCard: React.FC<{
     );
 };
 
-const ActivityItem: React.FC<{
-    type: string;
-    message: string;
-    time: string;
-    icon: React.ElementType;
-    color: string;
-}> = ({ message, time, icon: Icon, color }) => {
-    return (
-        <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-            <div className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center`}>
-                <Icon size={16} className={color} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">{message}</p>
-                <p className="text-xs text-gray-500 mt-1">{time}</p>
-            </div>
-        </div>
-    );
-};
 
 export default function DonorDashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
