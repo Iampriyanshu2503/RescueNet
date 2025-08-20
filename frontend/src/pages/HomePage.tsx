@@ -57,7 +57,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F7F7' }}>
       {/* Top Header Navigation */}
-      <header className="bg-white shadow-sm border-b border-gray-200 relative z-50">
+      <header className="shadow-sm border-b border-gray-200 relative z-50" style={{ backgroundColor: '#F4FDF7' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
