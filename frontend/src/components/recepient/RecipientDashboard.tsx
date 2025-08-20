@@ -100,13 +100,8 @@ export default function FoodListingsPage() {
     };
 
     const handleSearch = () => {
-        console.log('Search functionality');
-        // Focus on search input for better UX
-        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.select();
-        }
+        console.log('Navigate to search page');
+        navigate('/search');
     };
 
     const handleRequestHistory = () => {
