@@ -143,9 +143,6 @@ const HomePage = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl">
-          <div className="mb-4 inline-flex items-center text-white px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-white border-opacity-20" style={{ backgroundColor: 'rgba(52, 168, 83, 0.8)' }}>
-            🥗 Join Sustainable Food Solutions
-          </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
             Byte Banquet
