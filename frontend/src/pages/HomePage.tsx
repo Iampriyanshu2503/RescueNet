@@ -44,6 +44,16 @@ const HomePage = () => {
     navigate('/login');
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F7F7' }}>
       {/* Top Header Navigation */}
