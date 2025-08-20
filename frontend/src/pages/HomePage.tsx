@@ -456,8 +456,8 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            <div className="text-center rounded-2xl p-8 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#F4FDF7' }}>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="text-center rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853' }}>
                 <HeartHandshake className="w-8 h-8 text-white" />
               </div>
