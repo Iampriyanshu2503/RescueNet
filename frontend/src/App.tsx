@@ -15,6 +15,7 @@ import DonorProfilePage from './components/donor/DonorProfile';
 import DonorRegisterForm from './components/auth/DonorRegisterForm';
 import RecipientRegisterForm from './components/auth/RecipientRegisterForm';
 import VolunteerRegisterForm from './components/auth/VolunteerRegisterForm';
+import VolunteerDashboard from './components/volunteer/FoodListDashboard';
 
 import './App.css';
 
