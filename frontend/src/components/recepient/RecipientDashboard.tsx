@@ -115,10 +115,10 @@ export default function FoodListingsPage() {
     };
 
     const handleChatSupport = () => {
-        console.log('Navigate to chat support');
-        // For now, show alert until chat feature is implemented
-        alert('Chat support feature will be available soon!');
-        // TODO: Implement chat support page
+        console.log('Opening chat support');
+        // For now, provide contact information until full chat is implemented
+        const contactInfo = 'Chat Support\\n\\nFor immediate assistance:\\n📞 Phone: +1 (555) 123-HELP\\n📧 Email: support@foodshare.org\\n\\nLive chat coming soon!';
+        alert(contactInfo);
     };
 
     const handleProfile = () => {
