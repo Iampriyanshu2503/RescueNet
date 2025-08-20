@@ -138,8 +138,16 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20" style={{ backgroundColor: '#F9FAFB' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F9FAFB' }}>
+        {/* Background Tech Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-10 left-10 w-32 h-32 border border-gray-400 rounded-full"></div>
+          <div className="absolute top-20 right-20 w-24 h-24 border border-gray-400 rounded-lg"></div>
+          <div className="absolute bottom-32 left-32 w-40 h-40 border border-gray-400 rounded-full"></div>
+          <div className="absolute bottom-20 right-10 w-28 h-28 border border-gray-400 rounded-lg"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
             <div className="inline-flex items-center text-white px-4 py-2 rounded-full text-sm font-medium mb-6" style={{ backgroundColor: '#34A853' }}>
               Key Features Designed for Impact
