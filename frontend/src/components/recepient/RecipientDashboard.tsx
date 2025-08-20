@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Clock, Star, Users, Filter, Home, FileText, MessageCircle, User, Recycle, Plus } from 'lucide-react';
+import { Search, MapPin, Clock, Star, Users, Filter, Home, FileText, MessageCircle, User, Recycle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface FoodListing {
