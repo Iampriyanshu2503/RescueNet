@@ -61,9 +61,32 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-black bg-opacity-30"></div>
         </div>
         
+        {/* Tech Overlay Effects */}
+        <div className="absolute inset-0 z-5 pointer-events-none">
+          <div className="absolute top-20 left-10 w-16 h-16 rounded-full border-2 border-yellow-400 opacity-60 animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-12 h-12 rounded-full border-2 border-blue-400 opacity-50 animate-ping"></div>
+          <div className="absolute bottom-32 left-20 w-20 h-20 rounded-full border-2 border-green-400 opacity-40 animate-pulse"></div>
+          <div className="absolute bottom-20 right-32 w-8 h-8 rounded-full border-2 border-yellow-400 opacity-70 animate-ping"></div>
+
+          {/* Floating UI Elements */}
+          <div className="absolute top-1/4 left-16 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3 border border-white border-opacity-20">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              <span className="text-xs text-white">Smart Detection</span>
+            </div>
+          </div>
+
+          <div className="absolute top-1/3 right-16 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3 border border-white border-opacity-20">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+              <span className="text-xs text-white">Real-time Sync</span>
+            </div>
+          </div>
+        </div>
+
         {/* Hero Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl">
-          <div className="mb-4 inline-flex items-center text-white px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: '#34A853' }}>
+          <div className="mb-4 inline-flex items-center text-white px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-white border-opacity-20" style={{ backgroundColor: 'rgba(52, 168, 83, 0.8)' }}>
             🥗 Join Sustainable Food Solutions
           </div>
           
