@@ -195,8 +195,8 @@ const HomePage = () => {
       <section id="features" className="py-16" style={{ backgroundColor: '#F4FDF7' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center text-white px-4 py-2 rounded-full text-sm font-medium mb-6" style={{ backgroundColor: '#34A853' }}>
-              Key Features Designed for Impact
+            <div className="inline-flex items-center text-white px-8 py-4 rounded-2xl text-lg font-bold mb-8 shadow-lg transform hover:scale-105 transition-all duration-300" style={{ backgroundColor: '#34A853' }}>
+              ✨ Key Features Designed for Impact
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Powerful Tools for <span style={{ color: '#34A853' }}>Zero Waste</span>
