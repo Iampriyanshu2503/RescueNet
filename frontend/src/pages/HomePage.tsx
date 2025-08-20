@@ -352,7 +352,7 @@ const HomePage = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="py-20" style={{ backgroundColor: '#F4FDF7' }}>
+      <section className="py-12" style={{ backgroundColor: '#F4FDF7' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
