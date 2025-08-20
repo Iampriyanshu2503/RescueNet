@@ -111,9 +111,7 @@ export default function FoodListingsPage() {
 
     const handleRequestHistory = () => {
         console.log('Navigate to pickup history');
-        // Navigate to existing pickup history component
-        navigate('/recipient-dashboard'); // Stay on current page but scroll to history section
-        // TODO: Add actual route when PickupHistory component is routed
+        navigate('/pickup-history');
     };
 
     const handleChatSupport = () => {
