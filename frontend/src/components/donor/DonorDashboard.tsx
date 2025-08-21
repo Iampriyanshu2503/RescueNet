@@ -503,6 +503,13 @@ export default function DonorDashboard() {
                         </span>
                     </div>
                 </div>
+
+                {/* Analytics Modal */}
+                <DetailedAnalyticsModal
+                    isOpen={isAnalyticsModalOpen}
+                    onClose={closeAnalyticsModal}
+                    analyticsType={selectedAnalyticsType}
+                />
             </div>
         </div>
     );
