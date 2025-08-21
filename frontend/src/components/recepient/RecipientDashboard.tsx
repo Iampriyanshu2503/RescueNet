@@ -234,85 +234,92 @@ export default function FoodListingsPage() {
                 </div>
 
                 {/* Food Listings */}
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                     {listings.map((listing) => (
-                        <div key={listing.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-                            <div className="p-6">
-                                <div className="flex items-start space-x-4">
+                        <div key={listing.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
+                            <div className="p-4 sm:p-6">
+                                <div className="flex items-start space-x-3 sm:space-x-4">
                                     {/* Food Image */}
-                                    <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner">
                                         {listing.image ? (
                                             <img src={listing.image} alt={listing.title} className="w-full h-full object-cover rounded-xl" />
                                         ) : (
-                                            <div className="text-gray-400 text-2xl">🍽️</div>
+                                            <div className="text-gray-400 text-xl sm:text-2xl">🍽️</div>
                                         )}
                                     </div>
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <h3 className="text-lg font-bold text-gray-900 mb-1">{listing.title}</h3>
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate">{listing.title}</h3>
                                                 <div className="flex items-center mb-2">
-                                                    <span className="text-gray-600 text-sm">{listing.restaurant}</span>
-                                                    <div className="flex items-center ml-2">
-                                                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                                        <span className="text-sm text-gray-600 ml-1">{listing.rating}</span>
+                                                    <span className="text-gray-600 text-sm truncate">{listing.restaurant}</span>
+                                                    <div className="flex items-center ml-2 flex-shrink-0">
+                                                        <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
+                                                        <span className="text-xs sm:text-sm text-gray-600 ml-1">{listing.rating}</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(listing.status)}`}>
+                                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ml-2 ${getStatusColor(listing.status)}`}>
                                                 {listing.status}
                                             </span>
                                         </div>
 
-                                        {/* Details */}
-                                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm text-gray-600">
-                                            <div className="flex items-center">
-                                                <Users className="w-4 h-4 mr-2 text-gray-400" />
-                                                <span>Quantity: {listing.quantity} portions</span>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                                                <span>{listing.location.address} • {listing.location.distance}</span>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                                                <span>Pickup: {listing.pickup.start} - {listing.pickup.end}</span>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                                                <span>{listing.availableUntil}</span>
+                                        {/* Details - Mobile Optimized */}
+                                        <div className="space-y-2 mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div className="flex items-center">
+                                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
+                                                    <span className="truncate">{listing.quantity} portions available</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
+                                                    <span className="truncate">{listing.location.address} • {listing.location.distance}</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
+                                                    <span className="truncate">Pickup: {listing.pickup.start} - {listing.pickup.end}</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-green-500 flex-shrink-0" />
+                                                    <span className="truncate font-medium text-green-600">{listing.availableUntil}</span>
+                                                </div>
                                             </div>
                                         </div>
 
                                         {/* Tags */}
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {listing.tags.map((tag) => (
-                                                <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
+                                            {listing.tags.slice(0, 3).map((tag) => (
+                                                <span key={tag} className="px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
                                                     {tag}
                                                 </span>
                                             ))}
+                                            {listing.tags.length > 3 && (
+                                                <span className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                                                    +{listing.tags.length - 3} more
+                                                </span>
+                                            )}
                                             {listing.isPickupOnly && (
-                                                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                                <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
                                                     Pickup Only
                                                 </span>
                                             )}
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex space-x-3">
+                                        <div className="flex space-x-2 sm:space-x-3">
                                             <button
                                                 onClick={() => handleRequest(listing.id)}
-                                                className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                                                className="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg text-sm sm:text-base"
                                             >
-                                                Request
+                                                Request Now
                                             </button>
                                             <button
                                                 onClick={() => handleViewDetails(listing.id)}
-                                                className="px-6 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                                                className="px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md text-sm sm:text-base"
                                             >
-                                                View Details
+                                                Details
                                             </button>
                                         </div>
                                     </div>
