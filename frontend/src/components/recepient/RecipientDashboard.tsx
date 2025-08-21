@@ -154,27 +154,27 @@ export default function FoodListingsPage() {
             {/* Action Tabs */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-3 gap-2 py-4">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 sm:py-4">
                         <button
                             onClick={handleRequestHistory}
-                            className="flex flex-col items-center p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                            className="flex flex-col items-center p-3 sm:p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200 transition-all duration-300 hover:scale-105 active:scale-95"
                         >
-                            <FileText className="w-6 h-6 mb-2" />
-                            <span className="text-sm font-medium">Request History</span>
+                            <FileText className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
+                            <span className="text-xs sm:text-sm font-medium text-center leading-tight">Request History</span>
                         </button>
                         <button
                             onClick={handleChatSupport}
-                            className="flex flex-col items-center p-4 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                            className="flex flex-col items-center p-3 sm:p-4 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 active:bg-green-200 transition-all duration-300 hover:scale-105 active:scale-95"
                         >
-                            <MessageCircle className="w-6 h-6 mb-2" />
-                            <span className="text-sm font-medium">Chat Support</span>
+                            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
+                            <span className="text-xs sm:text-sm font-medium text-center leading-tight">Chat Support</span>
                         </button>
                         <button
                             onClick={navigateToWastePickup}
-                            className="flex flex-col items-center p-4 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
+                            className="flex flex-col items-center p-3 sm:p-4 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 active:bg-orange-200 transition-all duration-300 hover:scale-105 active:scale-95"
                         >
-                            <Recycle className="w-6 h-6 mb-2" />
-                            <span className="text-sm font-medium">Waste Pickup</span>
+                            <Recycle className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
+                            <span className="text-xs sm:text-sm font-medium text-center leading-tight">Waste Pickup</span>
                         </button>
                     </div>
                 </div>
