@@ -182,13 +182,11 @@ export default function DonorDashboard() {
     };
 
     const handleRequestWastePickup = () => {
-        console.log('Navigate to waste pickup request');
-        navigate('/organic-waste-form');
+        navigate('/waste-to-energy');
     };
 
     const handleAddEvent = () => {
-        console.log('Navigate to add event');
-        navigate('/add-event');
+        navigate('/list-event-food');
     };
 
     const handleTestEventReminder = () => {

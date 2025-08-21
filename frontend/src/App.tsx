@@ -74,7 +74,7 @@ function AppContent() {
 
         <Route path="/" element={<HomePage />} />
       </Routes>
-      
+
       {/* Toast notifications */}
       <Toaster position="top-right" />
     </div>
