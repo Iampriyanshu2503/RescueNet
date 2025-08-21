@@ -166,6 +166,8 @@ const ListingCard: React.FC<{
 
 export default function DonorDashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
+    const [selectedAnalyticsType, setSelectedAnalyticsType] = useState<'donations' | 'people-served' | 'active-listings' | 'pickup-requests' | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
