@@ -142,10 +142,10 @@ export default function Header() {
                             {/* Profile Button */}
                             <button
                                 onClick={handleProfileClick}
-                                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
                             >
                                 <User className="w-5 h-5" />
-                                <span>Profile</span>
+                                <span className="hidden sm:inline">Profile</span>
                             </button>
 
                             {/* Mobile Navigation - Only show on small screens */}
@@ -164,7 +164,7 @@ export default function Header() {
                                 {/* Profile button for mobile */}
                                 <button
                                     onClick={handleProfileClick}
-                                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
+                                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
                                 >
                                     <User className="w-5 h-5" />
                                 </button>
@@ -224,7 +224,7 @@ export default function Header() {
                             <div className="pt-3 border-t border-gray-100">
                                 <button
                                     onClick={handleProfileClick}
-                                    className="flex items-center space-x-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-2xl transition-colors font-semibold"
+                                    className="flex items-center space-x-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg font-semibold"
                                 >
                                     <User className="w-5 h-5" />
                                     <span>View Profile</span>

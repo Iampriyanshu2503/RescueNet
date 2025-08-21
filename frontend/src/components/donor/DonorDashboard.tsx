@@ -20,6 +20,7 @@ import {
     BarChart3,
     Sparkles
 } from 'lucide-react';
+import DetailedAnalyticsModal from './DetailedAnalyticsModal';
 
 interface StatCardProps {
     icon: React.ElementType;
@@ -28,16 +29,19 @@ interface StatCardProps {
     trend?: string;
     color: string;
     iconColor: string;
+    onClick?: () => void;
+    analyticsType?: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests';
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, color, iconColor }) => {
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, color, iconColor, onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <div
-            className={`relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${isHovered ? 'bg-white/90' : ''}`}
+            className={`relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer ${isHovered ? 'bg-white/90' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onClick={onClick}
         >
             <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -58,6 +62,13 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, co
             {/* Animated background effect */}
             <div className={`absolute -right-8 -top-8 w-24 h-24 rounded-full ${color} bg-opacity-5 transition-all duration-300 ${isHovered ? 'scale-150 bg-opacity-10' : ''
                 }`} />
+
+            {/* Click indicator */}
+            {isHovered && (
+                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium opacity-90">
+                    Click for details
+                </div>
+            )}
         </div>
     );
 };
@@ -155,6 +166,8 @@ const ListingCard: React.FC<{
 
 export default function DonorDashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
+    const [selectedAnalyticsType, setSelectedAnalyticsType] = useState<'donations' | 'people-served' | 'active-listings' | 'pickup-requests' | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -193,6 +206,16 @@ export default function DonorDashboard() {
         navigate('/login');
     };
 
+    const handleStatClick = (analyticsType: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests') => {
+        setSelectedAnalyticsType(analyticsType);
+        setIsAnalyticsModalOpen(true);
+    };
+
+    const closeAnalyticsModal = () => {
+        setIsAnalyticsModalOpen(false);
+        setSelectedAnalyticsType(null);
+    };
+
     const stats = [
         {
             icon: Package,
@@ -200,7 +223,9 @@ export default function DonorDashboard() {
             value: 156,
             trend: '+12% this month',
             color: 'bg-gradient-to-r from-blue-500 to-blue-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'donations' as const,
+            onClick: () => handleStatClick('donations')
         },
         {
             icon: Users,
@@ -208,7 +233,9 @@ export default function DonorDashboard() {
             value: '2,340',
             trend: '+8% vs last month',
             color: 'bg-gradient-to-r from-green-500 to-green-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'people-served' as const,
+            onClick: () => handleStatClick('people-served')
         },
         {
             icon: Calendar,
@@ -216,7 +243,9 @@ export default function DonorDashboard() {
             value: 8,
             trend: '2 expiring soon',
             color: 'bg-gradient-to-r from-orange-500 to-orange-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'active-listings' as const,
+            onClick: () => handleStatClick('active-listings')
         },
         {
             icon: Truck,
@@ -224,7 +253,9 @@ export default function DonorDashboard() {
             value: 23,
             trend: '5 new today',
             color: 'bg-gradient-to-r from-purple-500 to-purple-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'pickup-requests' as const,
+            onClick: () => handleStatClick('pickup-requests')
         }
     ];
 
@@ -292,17 +323,17 @@ export default function DonorDashboard() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50">
             {/* Header */}
             <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-6 py-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 Donor Dashboard
                             </h1>
-                            <p className="text-gray-600 text-sm mt-1">Welcome back! Ready to make a difference today?</p>
+                            <p className="text-gray-600 text-sm mt-1 hidden sm:block">Welcome back! Ready to make a difference today?</p>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <div className="hidden md:flex items-center gap-3">
                                 <ActionButton
                                     icon={BarChart3}
                                     label="Analytics"
@@ -312,14 +343,15 @@ export default function DonorDashboard() {
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <button className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
-                                    <Bell size={20} />
+                                <button className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
+                                    <Bell size={18} className="sm:w-5 sm:h-5" />
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
+                                    className="px-3 py-2 sm:px-4 text-sm sm:text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
                                 >
-                                    Logout
+                                    <span className="hidden sm:inline">Logout</span>
+                                    <span className="sm:hidden">Exit</span>
                                 </button>
                             </div>
                         </div>
@@ -327,17 +359,17 @@ export default function DonorDashboard() {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                     {stats.map((stat, index) => (
                         <StatCard key={index} {...stat} />
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Quick Actions */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                    <div className="lg:col-span-1 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <Sparkles size={20} className="text-purple-600" />
                             <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
@@ -435,19 +467,19 @@ export default function DonorDashboard() {
                         <h2 className="text-lg font-semibold text-gray-900">Your Impact</h2>
                     </div>
                     <div className="p-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Users className="w-10 h-10 text-white" />
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <Users className="w-8 h-8 md:w-10 md:h-10 text-white" />
                                 </div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">2,340</div>
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">2,340</div>
                                 <div className="text-sm text-gray-600">People Fed This Month</div>
                             </div>
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Recycle className="w-10 h-10 text-white" />
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <Recycle className="w-8 h-8 md:w-10 md:h-10 text-white" />
                                 </div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">1.2 tons</div>
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">1.2 tons</div>
                                 <div className="text-sm text-gray-600">CO₂ Emissions Reduced</div>
                             </div>
                         </div>
@@ -472,6 +504,13 @@ export default function DonorDashboard() {
                         </span>
                     </div>
                 </div>
+
+                {/* Analytics Modal */}
+                <DetailedAnalyticsModal
+                    isOpen={isAnalyticsModalOpen}
+                    onClose={closeAnalyticsModal}
+                    analyticsType={selectedAnalyticsType}
+                />
             </div>
         </div>
     );

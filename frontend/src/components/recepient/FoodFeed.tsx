@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Users, Timer, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Users, Timer, AlertTriangle, CheckCircle, Info, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -114,26 +114,26 @@ export default function RequestConfirmationPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-200">
+            <div className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-white/20 sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center py-4">
                         <button
                             onClick={handleBack}
-                            className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-all duration-300 hover:scale-110"
                         >
                             <ArrowLeft className="w-6 h-6 text-gray-600" />
                         </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Request Confirmation</h1>
-                            <p className="text-sm text-gray-600 mt-1">Review details before confirming</p>
+                        <div className="flex-1">
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Request Confirmation</h1>
+                            <p className="text-sm text-gray-600 mt-1 hidden sm:block">Review details before confirming</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
                 {/* Food Details Card */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6">
@@ -282,33 +282,33 @@ export default function RequestConfirmationPage() {
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-4 shadow-lg">
-                <div className="max-w-4xl mx-auto flex space-x-4">
+            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 sm:py-4 shadow-lg safe-bottom">
+                <div className="max-w-4xl mx-auto flex space-x-3 sm:space-x-4">
                     <button
                         onClick={handleCancel}
-                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-2xl transition-colors"
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleConfirmRequest}
                         disabled={isSubmitting}
-                        className="flex-2 bg-green-500 hover:bg-green-600 disabled:bg-green-400 text-white font-semibold py-4 px-8 rounded-2xl transition-colors flex items-center justify-center min-w-[200px]"
+                        className="flex-2 bg-green-500 hover:bg-green-600 disabled:bg-green-400 active:bg-green-700 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center min-w-[160px] sm:min-w-[200px] shadow-md hover:shadow-lg"
                     >
                         {isSubmitting ? (
                             <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                Confirming...
+                                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                <span className="text-sm sm:text-base">Confirming...</span>
                             </>
                         ) : (
-                            'Confirm Request'
+                            <span className="text-sm sm:text-base">Confirm Request</span>
                         )}
                     </button>
                 </div>
             </div>
 
             {/* Bottom padding */}
-            <div className="h-24"></div>
+            <div className="h-20 sm:h-24"></div>
         </div>
     );
 }
