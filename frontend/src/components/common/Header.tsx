@@ -142,10 +142,10 @@ export default function Header() {
                             {/* Profile Button */}
                             <button
                                 onClick={handleProfileClick}
-                                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
                             >
                                 <User className="w-5 h-5" />
-                                <span>Profile</span>
+                                <span className="hidden sm:inline">Profile</span>
                             </button>
 
                             {/* Mobile Navigation - Only show on small screens */}
