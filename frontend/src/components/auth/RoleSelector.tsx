@@ -44,8 +44,8 @@ export default function FoodBanquetSelection() {
                         <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                             <Heart className="w-8 h-8 text-white" />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Food Banquet</h1>
-                        <p className="text-gray-600">How would you like to help today?</p>
+                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Food Banquet</h1>
+                        <p className="text-gray-600">Choose your dashboard to get started</p>
                     </div>
 
                     {/* Role Selection Cards - Grid Layout */}

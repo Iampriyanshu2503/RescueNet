@@ -20,7 +20,7 @@ export default function FoodBanquetLogin() {
     };
 
     const handleSignUp = () => {
-        navigate('/select-role');
+        navigate('/register');
     };
 
     return (
