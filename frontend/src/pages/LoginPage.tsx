@@ -1,22 +1,50 @@
-import React, { useState } from 'react';
-import { Mail, Lock, Heart, HelpCircle } from 'lucide-react';
+import React, { useState, useContext } from 'react';
+import { Mail, Lock, Heart, AlertCircle, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
+import { AuthContext } from '../context/AuthDonorContext';
 
 export default function FoodBanquetLogin() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+    const authContext = useContext(AuthContext);
 
 
     const handleLogin = async () => {
+        // Validate form
+        if (!email || !password) {
+            setError('Please enter both email and password');
+            return;
+        }
+
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
+        setError('');
+
+        try {
+            // Call login API
+            const userData = await authService.login({ email, password });
+            
+            // Update auth context if available
+            if (authContext) {
+                authContext.login({
+                    id: userData._id,
+                    firstName: userData.name.split(' ')[0] || '',
+                    lastName: userData.name.split(' ')[1] || '',
+                    email: userData.email
+                }, userData.token);
+            }
+
             // Redirect to role selection page after successful login
             navigate('/select-role');
-        }, 2000);
+        } catch (err: any) {
+            // Handle login error
+            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleSignUp = () => {
@@ -81,6 +109,14 @@ export default function FoodBanquetLogin() {
                                 Forgot Password?
                             </button>
                         </div>
+
+                        {/* Error Message */}
+                        {error && (
+                            <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+                                <AlertCircle className="w-4 h-4 mr-2" />
+                                {error}
+                            </div>
+                        )}
 
                         {/* Login Button */}
                         <button
