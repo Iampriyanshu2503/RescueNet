@@ -29,6 +29,8 @@ interface StatCardProps {
     trend?: string;
     color: string;
     iconColor: string;
+    onClick?: () => void;
+    analyticsType?: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests';
 }
 
 const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, color, iconColor }) => {
