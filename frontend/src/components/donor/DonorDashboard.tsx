@@ -33,14 +33,15 @@ interface StatCardProps {
     analyticsType?: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests';
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, color, iconColor }) => {
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, color, iconColor, onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <div
-            className={`relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${isHovered ? 'bg-white/90' : ''}`}
+            className={`relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer ${isHovered ? 'bg-white/90' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onClick={onClick}
         >
             <div className="flex items-center justify-between">
                 <div className="flex-1">
