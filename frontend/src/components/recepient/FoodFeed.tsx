@@ -282,26 +282,26 @@ export default function RequestConfirmationPage() {
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-4 shadow-lg">
-                <div className="max-w-4xl mx-auto flex space-x-4">
+            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 sm:py-4 shadow-lg safe-bottom">
+                <div className="max-w-4xl mx-auto flex space-x-3 sm:space-x-4">
                     <button
                         onClick={handleCancel}
-                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-2xl transition-colors"
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleConfirmRequest}
                         disabled={isSubmitting}
-                        className="flex-2 bg-green-500 hover:bg-green-600 disabled:bg-green-400 text-white font-semibold py-4 px-8 rounded-2xl transition-colors flex items-center justify-center min-w-[200px]"
+                        className="flex-2 bg-green-500 hover:bg-green-600 disabled:bg-green-400 active:bg-green-700 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center min-w-[160px] sm:min-w-[200px] shadow-md hover:shadow-lg"
                     >
                         {isSubmitting ? (
                             <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                Confirming...
+                                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                <span className="text-sm sm:text-base">Confirming...</span>
                             </>
                         ) : (
-                            'Confirm Request'
+                            <span className="text-sm sm:text-base">Confirm Request</span>
                         )}
                     </button>
                 </div>
