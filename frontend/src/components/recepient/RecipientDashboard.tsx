@@ -126,25 +126,26 @@ export default function FoodListingsPage() {
             {/* Header */}
             <div className="bg-white shadow-sm border-b border-gray-200">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between py-4">
-                        <div className="flex items-center">
-                            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
-                                <span className="text-white font-bold text-lg">H</span>
+                    <div className="flex items-center justify-between py-3 sm:py-4">
+                        <div className="flex items-center min-w-0 flex-1">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                <span className="text-white font-bold text-base sm:text-lg">H</span>
                             </div>
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-900">Hope Foundation</h1>
+                            <div className="min-w-0 flex-1">
+                                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Hope Foundation</h1>
                                 <div className="flex items-center">
-                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                    <span className="text-sm text-gray-600 ml-1">4.9 (99)</span>
+                                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
+                                    <span className="text-xs sm:text-sm text-gray-600 ml-1">4.9 (99 reviews)</span>
                                 </div>
                             </div>
                         </div>
                         <button
                             onClick={navigateToWastePickup}
-                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center"
+                            className="bg-green-500 hover:bg-green-600 active:scale-95 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg flex items-center ml-2"
                         >
-                            <Recycle className="w-4 h-4 mr-2" />
-                            Waste Pickup
+                            <Recycle className="w-4 h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Waste Pickup</span>
+                            <span className="sm:hidden">Pickup</span>
                         </button>
                     </div>
                 </div>
