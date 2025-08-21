@@ -20,6 +20,7 @@ import {
     BarChart3,
     Sparkles
 } from 'lucide-react';
+import DetailedAnalyticsModal from './DetailedAnalyticsModal';
 
 interface StatCardProps {
     icon: React.ElementType;
