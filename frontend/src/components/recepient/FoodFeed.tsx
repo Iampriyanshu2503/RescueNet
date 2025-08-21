@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Users, Timer, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Users, Timer, AlertTriangle, CheckCircle, Info, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
