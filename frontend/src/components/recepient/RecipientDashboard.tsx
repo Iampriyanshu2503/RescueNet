@@ -180,16 +180,24 @@ export default function FoodListingsPage() {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
                 {/* Section Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Live Food Listings</h2>
-                        <p className="text-green-600 font-medium mt-1 flex items-center">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Live Food Listings</h2>
+                        <p className="text-green-600 font-medium mt-1 flex items-center text-sm sm:text-base">
                             <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                            3 Available
+                            3 Available Near You
                         </p>
                     </div>
+                    <button
+                        onClick={() => navigate('/search')}
+                        className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 sm:px-4 py-2 rounded-xl font-medium transition-all duration-300 hover:scale-105 active:scale-95 flex items-center"
+                    >
+                        <Search className="w-4 h-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Advanced Search</span>
+                        <span className="sm:hidden">Search</span>
+                    </button>
                 </div>
 
                 {/* Search and Filters */}
