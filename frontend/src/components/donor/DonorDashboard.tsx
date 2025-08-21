@@ -62,6 +62,13 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, trend, co
             {/* Animated background effect */}
             <div className={`absolute -right-8 -top-8 w-24 h-24 rounded-full ${color} bg-opacity-5 transition-all duration-300 ${isHovered ? 'scale-150 bg-opacity-10' : ''
                 }`} />
+
+            {/* Click indicator */}
+            {isHovered && (
+                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium opacity-90">
+                    Click for details
+                </div>
+            )}
         </div>
     );
 };
