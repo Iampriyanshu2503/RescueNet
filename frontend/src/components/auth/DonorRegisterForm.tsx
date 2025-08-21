@@ -121,13 +121,9 @@ export default function DonorRegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                auth?.login({
-                    id: data._id,
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                });
-                navigate("/donor-profile");
+                // Show success message and redirect to login
+                alert('Registration successful! Please log in with your credentials.');
+                navigate('/login');
             }
             else {
                 if (data.code === 11000) {
@@ -369,6 +365,7 @@ export default function DonorRegisterForm() {
                                 Already have an account?{' '}
                                 <button
                                     type="button"
+                                    onClick={() => navigate('/login')}
                                     className="text-blue-500 hover:text-blue-600 font-medium"
                                 >
                                     Sign in here
