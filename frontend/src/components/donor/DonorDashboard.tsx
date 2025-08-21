@@ -323,17 +323,17 @@ export default function DonorDashboard() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50">
             {/* Header */}
             <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-6 py-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 Donor Dashboard
                             </h1>
-                            <p className="text-gray-600 text-sm mt-1">Welcome back! Ready to make a difference today?</p>
+                            <p className="text-gray-600 text-sm mt-1 hidden sm:block">Welcome back! Ready to make a difference today?</p>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <div className="hidden md:flex items-center gap-3">
                                 <ActionButton
                                     icon={BarChart3}
                                     label="Analytics"
@@ -343,14 +343,15 @@ export default function DonorDashboard() {
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <button className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
-                                    <Bell size={20} />
+                                <button className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
+                                    <Bell size={18} className="sm:w-5 sm:h-5" />
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
+                                    className="px-3 py-2 sm:px-4 text-sm sm:text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
                                 >
-                                    Logout
+                                    <span className="hidden sm:inline">Logout</span>
+                                    <span className="sm:hidden">Exit</span>
                                 </button>
                             </div>
                         </div>
