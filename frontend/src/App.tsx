@@ -54,6 +54,7 @@ function AppContent() {
 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/select-role" element={<FoodBanquetSelection />} />
         <Route path="/add-surplus-food" element={<AddSurplusFood />} />
         <Route path="/donor-dashboard" element={<DonorDashboard />} />
