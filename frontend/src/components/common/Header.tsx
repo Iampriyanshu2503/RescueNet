@@ -224,7 +224,7 @@ export default function Header() {
                             <div className="pt-3 border-t border-gray-100">
                                 <button
                                     onClick={handleProfileClick}
-                                    className="flex items-center space-x-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-2xl transition-colors font-semibold"
+                                    className="flex items-center space-x-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg font-semibold"
                                 >
                                     <User className="w-5 h-5" />
                                     <span>View Profile</span>
