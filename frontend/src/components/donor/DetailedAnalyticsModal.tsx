@@ -181,7 +181,7 @@ const DetailedAnalyticsModal: React.FC<DetailedAnalyticsModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-120px)]">
                     {/* Main Metrics */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="col-span-1 md:col-span-2">
