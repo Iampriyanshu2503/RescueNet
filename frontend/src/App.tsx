@@ -1,6 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Header from './components/common/Header'; // Add this import
+import { Provider } from 'react-redux';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import { store } from './store';
+import Header from './components/common/Header';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import FoodBanquetSelection from './components/auth/RoleSelector';
@@ -21,6 +25,16 @@ import PickupHistory from './components/recepient/PickupHistory';
 import SearchResults from './components/recepient/SearchResults';
 
 import './App.css';
+
+// Create a React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Create a wrapper component to use useLocation hook
 function AppContent() {
@@ -58,15 +72,22 @@ function AppContent() {
 
         <Route path="/" element={<HomePage />} />
       </Routes>
+      
+      {/* Toast notifications */}
+      <Toaster position="top-right" />
     </div>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AppContent />
+        </Router>
+      </QueryClientProvider>
+    </Provider>
   );
 }
 
