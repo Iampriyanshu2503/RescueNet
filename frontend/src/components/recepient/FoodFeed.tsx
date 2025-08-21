@@ -308,7 +308,7 @@ export default function RequestConfirmationPage() {
             </div>
 
             {/* Bottom padding */}
-            <div className="h-24"></div>
+            <div className="h-20 sm:h-24"></div>
         </div>
     );
 }
