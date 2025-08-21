@@ -223,7 +223,9 @@ export default function DonorDashboard() {
             value: 156,
             trend: '+12% this month',
             color: 'bg-gradient-to-r from-blue-500 to-blue-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'donations' as const,
+            onClick: () => handleStatClick('donations')
         },
         {
             icon: Users,
@@ -231,7 +233,9 @@ export default function DonorDashboard() {
             value: '2,340',
             trend: '+8% vs last month',
             color: 'bg-gradient-to-r from-green-500 to-green-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'people-served' as const,
+            onClick: () => handleStatClick('people-served')
         },
         {
             icon: Calendar,
@@ -239,7 +243,9 @@ export default function DonorDashboard() {
             value: 8,
             trend: '2 expiring soon',
             color: 'bg-gradient-to-r from-orange-500 to-orange-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'active-listings' as const,
+            onClick: () => handleStatClick('active-listings')
         },
         {
             icon: Truck,
@@ -247,7 +253,9 @@ export default function DonorDashboard() {
             value: 23,
             trend: '5 new today',
             color: 'bg-gradient-to-r from-purple-500 to-purple-600',
-            iconColor: 'text-white'
+            iconColor: 'text-white',
+            analyticsType: 'pickup-requests' as const,
+            onClick: () => handleStatClick('pickup-requests')
         }
     ];
 
