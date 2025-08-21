@@ -23,6 +23,7 @@ import VolunteerDashboard from './components/volunteer/FoodListDashboard';
 import RecipientProfile from './components/recepient/RecipientProfile';
 import PickupHistory from './components/recepient/PickupHistory';
 import SearchResults from './components/recepient/SearchResults';
+import RegisterPage from './pages/RegisterPage';
 
 import './App.css';
 
