@@ -366,9 +366,9 @@ export default function DonorDashboard() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Quick Actions */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                    <div className="lg:col-span-1 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <Sparkles size={20} className="text-purple-600" />
                             <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
