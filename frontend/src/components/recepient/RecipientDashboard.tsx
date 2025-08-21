@@ -201,33 +201,33 @@ export default function FoodListingsPage() {
                 </div>
 
                 {/* Search and Filters */}
-                <div className="mb-6 space-y-4">
+                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                             type="text"
-                            placeholder="Search food items or restaurants..."
+                            placeholder="Search food items, restaurants, or cuisine..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            className="w-full pl-10 pr-4 py-3 sm:py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-300 text-sm sm:text-base"
                         />
                     </div>
 
-                    <div className="flex space-x-2 overflow-x-auto pb-2">
+                    <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
                         {filters.map((filter) => (
                             <button
                                 key={filter}
                                 onClick={() => setSelectedFilter(filter)}
-                                className={`px-4 py-2 rounded-full whitespace-nowrap font-medium transition-all ${selectedFilter === filter
-                                    ? 'bg-blue-500 text-white shadow-md'
-                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                className={`px-3 sm:px-4 py-2 rounded-full whitespace-nowrap font-medium transition-all duration-300 hover:scale-105 active:scale-95 text-sm sm:text-base ${selectedFilter === filter
+                                    ? 'bg-blue-500 text-white shadow-md hover:bg-blue-600'
+                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                     }`}
                             >
                                 {filter}
                             </button>
                         ))}
-                        <button className="px-4 py-2 rounded-full whitespace-nowrap font-medium bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex items-center">
-                            <Filter className="w-4 h-4 mr-2" />
+                        <button className="px-3 sm:px-4 py-2 rounded-full whitespace-nowrap font-medium bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center text-sm sm:text-base">
+                            <Filter className="w-4 h-4 mr-1 sm:mr-2" />
                             More Filters
                         </button>
                     </div>
