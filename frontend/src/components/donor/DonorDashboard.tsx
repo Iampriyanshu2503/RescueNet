@@ -206,6 +206,16 @@ export default function DonorDashboard() {
         navigate('/login');
     };
 
+    const handleStatClick = (analyticsType: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests') => {
+        setSelectedAnalyticsType(analyticsType);
+        setIsAnalyticsModalOpen(true);
+    };
+
+    const closeAnalyticsModal = () => {
+        setIsAnalyticsModalOpen(false);
+        setSelectedAnalyticsType(null);
+    };
+
     const stats = [
         {
             icon: Package,
