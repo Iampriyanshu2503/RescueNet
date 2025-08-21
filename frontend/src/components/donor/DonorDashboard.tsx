@@ -466,19 +466,19 @@ export default function DonorDashboard() {
                         <h2 className="text-lg font-semibold text-gray-900">Your Impact</h2>
                     </div>
                     <div className="p-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Users className="w-10 h-10 text-white" />
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <Users className="w-8 h-8 md:w-10 md:h-10 text-white" />
                                 </div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">2,340</div>
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">2,340</div>
                                 <div className="text-sm text-gray-600">People Fed This Month</div>
                             </div>
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Recycle className="w-10 h-10 text-white" />
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <Recycle className="w-8 h-8 md:w-10 md:h-10 text-white" />
                                 </div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">1.2 tons</div>
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">1.2 tons</div>
                                 <div className="text-sm text-gray-600">CO₂ Emissions Reduced</div>
                             </div>
                         </div>
