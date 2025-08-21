@@ -131,7 +131,8 @@ export default function VolunteerRegisterForm() {
             // Simulate API call
             setTimeout(() => {
                 setIsLoading(false);
-                alert('Registration successful!');
+                alert('Registration successful! Please log in with your credentials.');
+                navigate('/login');
             }, 2000);
         } catch (error) {
             setErrors({ submit: 'Registration failed. Please try again.' });
@@ -394,6 +395,7 @@ export default function VolunteerRegisterForm() {
                                 Already have an account?{' '}
                                 <button
                                     type="button"
+                                    onClick={() => navigate('/login')}
                                     className="text-purple-500 hover:text-purple-600 font-medium"
                                 >
                                     Sign in here
