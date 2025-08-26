@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Mail, Phone, MapPin, Heart, Eye, EyeOff, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useContext } from 'react';
-import { AuthContext } from "../../context/AuthDonorContext"; // Adjust the import path as necessary
+import { useDispatch } from 'react-redux';
+import { registerUser } from '../../store/authSlice';
 
 
 type FormData = {
@@ -45,7 +45,7 @@ const ORGANIZATION_OPTIONS = [
 
 export default function DonorRegisterForm() {
     const navigate = useNavigate();
-    const auth = useContext(AuthContext);
+    const dispatch = useDispatch();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<FormErrors>({});
@@ -111,34 +111,37 @@ export default function DonorRegisterForm() {
         setErrors({});
 
         try {
-            const response = await fetch('http://localhost:5000/api/donors/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
+            // Prepare user data for registration
+            const userData = {
+                name: `${formData.firstName} ${formData.lastName}`,
+                email: formData.email,
+                password: formData.password,
+                role: 'donor' as const,
+                // Additional fields can be stored in user profile later
+                phone: formData.phone,
+                address: formData.address,
+                organization: formData.organization
+            };
 
+            console.log('Submitting registration data:', userData);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                // Show success message and redirect to login
-                alert('Registration successful! Please log in with your credentials.');
+            // Use Redux action for registration
+            const result = await dispatch(registerUser(userData) as any);
+            
+            console.log('Registration result:', result);
+            
+            if (registerUser.fulfilled.match(result)) {
+                // Registration successful
+                console.log('Registration successful');
+                alert('Registration successful! Please log in.');
                 navigate('/login');
+            } else {
+                // Registration failed
+                const errorMessage = result.payload || 'Registration failed. Please try again.';
+                console.error('Registration failed:', errorMessage);
+                setErrors({ submit: errorMessage });
             }
-            else {
-                if (data.code === 11000) {
-                    setErrors({ email: 'Email address is already registered' });
-                } else if (data.errors) {
-                    const newErrors: FormErrors = {};
-                    Object.keys(data.errors).forEach(key => {
-                        newErrors[key as keyof FormErrors] = data.errors[key].message;
-                    });
-                    setErrors(newErrors);
-                } else {
-                    setErrors({ submit: data.message || 'Registration failed. Please try again.' });
-                }
-            }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Registration error:', error);
             setErrors({ submit: 'Network error. Please check your connection and try again.' });
         } finally {
@@ -339,7 +342,12 @@ export default function DonorRegisterForm() {
                         {/* Error Message */}
                         {errors.submit && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                <p className="text-red-600 text-sm">{errors.submit}</p>
+                                <p className="text-red-600 text-sm font-medium">Registration Failed</p>
+                                <p className="text-red-500 text-xs mt-1">{errors.submit}</p>
+                                <p className="text-red-400 text-xs mt-2">
+                                    Please check your internet connection and try again. 
+                                    If the problem persists, contact support.
+                                </p>
                             </div>
                         )}
 
@@ -358,6 +366,15 @@ export default function DonorRegisterForm() {
                                 'Create Donor Account'
                             )}
                         </button>
+
+                        {/* Loading Message */}
+                        {isLoading && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                <p className="text-blue-600 text-sm">
+                                    Please wait while we create your account...
+                                </p>
+                            </div>
+                        )}
 
                         {/* Login Link */}
                         <div className="text-center pt-4">

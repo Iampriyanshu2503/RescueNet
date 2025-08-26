@@ -8,10 +8,11 @@ const FoodDonation = require('../models/foodDonationModel');
 // @access  Private
 router.post('/', protect, async (req, res) => {
   try {
-    const { foodType, servings, description, bestBefore, allergens, pickupInstructions, image } = req.body;
+    const { foodType, servings, description, bestBefore, allergens, pickupInstructions, image, location } = req.body;
 
     const foodDonation = await FoodDonation.create({
       user: req.user._id,
+      donor: req.user._id, // Add donor field for notifications
       foodType,
       servings,
       description,
@@ -19,7 +20,15 @@ router.post('/', protect, async (req, res) => {
       allergens,
       pickupInstructions,
       image,
+      location,
+      status: 'available', // Set initial status
+      expiresAt: bestBefore || new Date(Date.now() + 24 * 60 * 60 * 1000) // Default 24 hours
     });
+
+    // Send notification to pre-registered customers
+    if (global.socketServer) {
+      await global.socketServer.notifyNewFoodDonation(foodDonation);
+    }
 
     res.status(201).json(foodDonation);
   } catch (error) {
@@ -88,11 +97,17 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
     
+    const oldStatus = foodDonation.status;
     const updatedFoodDonation = await FoodDonation.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
     );
+    
+    // Send notification if status changed
+    if (global.socketServer && oldStatus !== updatedFoodDonation.status) {
+      await global.socketServer.notifyDonationUpdate(updatedFoodDonation, updatedFoodDonation.status);
+    }
     
     res.json(updatedFoodDonation);
   } catch (error) {

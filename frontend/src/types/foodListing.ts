@@ -2,13 +2,13 @@ export interface FoodDonation {
   _id: string;
   user: string;
   foodType: string;
-  servings: number;
+  servings: string;
   description: string;
   bestBefore: string;
   allergens?: string[];
   pickupInstructions?: string;
   image?: string;
-  status: 'available' | 'claimed' | 'completed';
+  status: 'available' | 'reserved' | 'completed' | 'expired';
   location?: {
     address?: string;
     coordinates?: [number, number];
@@ -19,19 +19,23 @@ export interface FoodDonation {
 
 export interface CreateFoodDonationRequest {
   foodType: string;
-  servings: number;
+  servings: string;
   description: string;
   bestBefore: string;
   allergens?: string[];
   pickupInstructions?: string;
   image?: string;
+  location?: {
+    address?: string;
+    coordinates?: [number, number];
+  };
 }
 
 export interface WastePickup {
   _id: string;
   user: string;
   wasteType: string;
-  estimatedWeight: number;
+  estimatedWeight: string;
   description: string;
   preferredDate: string;
   timeSlot: string;
@@ -44,7 +48,7 @@ export interface WastePickup {
 
 export interface CreateWastePickupRequest {
   wasteType: string;
-  estimatedWeight: number;
+  estimatedWeight: string;
   description: string;
   preferredDate: string;
   timeSlot: string;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import authService from '../../services/authService';
 import {
     ArrowLeft,
     User,
@@ -33,13 +34,6 @@ type DonorProfile = {
     updatedAt?: string;
 };
 
-type ApiResponse = {
-    success: boolean;
-    data?: DonorProfile;
-    message?: string;
-    error?: string;
-};
-
 const ORGANIZATION_LABELS: { [key: string]: string } = {
     restaurant: 'Restaurant',
     cafe: 'Cafe',
@@ -56,18 +50,94 @@ const ORGANIZATION_LABELS: { [key: string]: string } = {
 
 export default function DonorProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
+    const [activeStatus, setActiveStatus] = useState<'active' | 'inactive'>('active');
     const [profile, setProfile] = useState<DonorProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Get current user's token/ID from localStorage or context
-    const getCurrentUserId = (): string | null => {
-        // Method 1: From localStorage (if you store user ID)
-        const userId = localStorage.getItem('userId');
-        if (userId) return userId;
+    // Form state
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        address: '',
+        organization: ''
+    });
 
-        // Method 2: From JWT token (if you store JWT)
-        const token = localStorage.getItem('authToken');
+    // Handle input changes
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    // Initialize form data when profile is loaded or editing is enabled
+    useEffect(() => {
+        if (profile && isEditing) {
+            setFormData({
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
+                email: profile.email || '',
+                phone: profile.phone || '',
+                address: profile.address || '',
+                organization: profile.organization || ''
+            });
+        }
+    }, [profile, isEditing]);
+
+    // Handle form submission
+    const handleSubmit = async () => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            setError("User ID not found. Please log in again.");
+            return;
+        }
+
+        try {
+            if (profile) {
+                setLoading(true);
+                const response = await fetch(`/api/donors/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    setProfile(prev => (prev ? { ...prev, ...formData } : prev));
+                    setIsEditing(false);
+                } else {
+                    setError(result.message || "Failed to update profile");
+                }
+            }
+        } catch (err) {
+            setError("An error occurred while updating profile");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Get current user ID
+    const getCurrentUserId = (): string | null => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user._id) return user._id;
+            } catch (e) {
+                console.error('Error parsing user from localStorage:', e);
+            }
+        }
+        const token = localStorage.getItem('token');
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
@@ -76,314 +146,250 @@ export default function DonorProfilePage() {
                 console.error('Error parsing token:', e);
             }
         }
-
         return null;
     };
 
-    // Fetch donor profile from API
+    // Fetch donor profile
     const fetchDonorProfile = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await fetch("http://localhost:5000/api/donors/me", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include", // 👈 sends cookie
-            });
-
-            if (!response.ok) {
-                throw new Error(response.status === 401 ? "Please login again." : "Failed to fetch profile.");
+            const storedUser = authService.getStoredUser();
+            if (storedUser) {
+                setProfile({
+                    _id: storedUser._id,
+                    firstName: storedUser.name?.split(' ')[0] || storedUser.name || '',
+                    lastName: storedUser.name?.split(' ')[1] || '',
+                    email: storedUser.email,
+                    phone: storedUser.phone || '',
+                    address: storedUser.address || '',
+                    organization: storedUser.organization || 'other',
+                    joinDate: storedUser.createdAt || new Date().toISOString(),
+                    totalDonations: storedUser.totalDonations || 0,
+                    mealsServed: storedUser.mealsServed || 0,
+                    impactScore: storedUser.impactScore || 0,
+                    status: 'active',
+                    createdAt: storedUser.createdAt || new Date().toISOString(),
+                    updatedAt: storedUser.updatedAt || new Date().toISOString(),
+                });
+                setLoading(false);
+                return;
             }
 
-            const data: ApiResponse = await response.json();
-            if (data.success && data.data) {
-                setProfile(data.data);
-            } else {
-                throw new Error(data.message || "Failed to load profile");
+            try {
+                const user = await authService.getProfile();
+                setProfile({
+                    _id: user._id,
+                    firstName: user.name?.split(' ')[0] || user.name || '',
+                    lastName: user.name?.split(' ')[1] || '',
+                    email: user.email,
+                    phone: user.phone || '',
+                    address: user.address || '',
+                    organization: user.organization || 'other',
+                    joinDate: user.createdAt || new Date().toISOString(),
+                    totalDonations: user.totalDonations || 0,
+                    mealsServed: user.mealsServed || 0,
+                    impactScore: user.impactScore || 0,
+                    status: 'active',
+                    createdAt: user.createdAt || new Date().toISOString(),
+                    updatedAt: user.updatedAt || new Date().toISOString(),
+                });
+            } catch (apiError) {
+                console.error('API error:', apiError);
+                const fallbackUser = {
+                    _id: 'temp-id',
+                    name: 'User',
+                    email: 'user@example.com',
+                    organization: 'restaurant',
+                    createdAt: new Date().toISOString()
+                };
+                setProfile({
+                    _id: fallbackUser._id,
+                    firstName: fallbackUser.name?.split(' ')[0] || fallbackUser.name || '',
+                    lastName: fallbackUser.name?.split(' ')[1] || '',
+                    email: fallbackUser.email,
+                    phone: '',
+                    address: '',
+                    organization: fallbackUser.organization || 'restaurant',
+                    joinDate: fallbackUser.createdAt || new Date().toISOString(),
+                    totalDonations: 0,
+                    mealsServed: 0,
+                    impactScore: 0,
+                    status: 'active',
+                    createdAt: fallbackUser.createdAt || new Date().toISOString(),
+                    updatedAt: fallbackUser.createdAt || new Date().toISOString(),
+                });
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Unexpected error");
+            console.error('Profile loading error:', err);
+            setError('Error loading profile. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-
-    // Fetch profile on component mount
     useEffect(() => {
         fetchDonorProfile();
     }, []);
 
-    // Loading state
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center space-y-4">
-                    <Loader className="w-8 h-8 animate-spin text-blue-500" />
-                    <p className="text-gray-600">Loading your profile...</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Error state
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="bg-white rounded-2xl shadow-lg p-8 text-center max-w-md">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-red-500 text-2xl">⚠️</span>
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Profile</h2>
-                    <p className="text-gray-600 mb-4">{error}</p>
-                    <button
-                        onClick={fetchDonorProfile}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // No profile data
-    if (!profile) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-                    <p className="text-gray-600">No profile data found.</p>
-                </div>
-            </div>
-        );
-    }
-
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'verified':
-                return 'bg-green-100 text-green-800 border-green-200';
-            case 'active':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            default:
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'verified': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 transition-colors';
+            case 'active': return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 transition-colors';
+            case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200 transition-colors';
+            default: return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 transition-colors';
         }
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'verified':
-                return '✓';
-            case 'active':
-                return '●';
-            default:
-                return '⏳';
+            case 'verified': return '✅';
+            case 'active': return '🟢';
+            case 'inactive': return '⚪';
+            default: return '⏳';
         }
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
     };
 
+    // UI
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+        );
+    }
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-red-600">{error}</p>
+            </div>
+        );
+    }
+    if (!profile) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>No profile data found.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
             {/* Header */}
-            <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <ArrowLeft className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <div>
-                                <h1 className="text-xl font-semibold text-gray-800">Donor Profile</h1>
-                                <p className="text-sm text-gray-500">Manage your donation profile</p>
-                            </div>
+            <div className="bg-white shadow-sm sticky top-0 z-10">
+                <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                        <button className="p-2 hover:bg-gray-100 rounded-full">
+                            <ArrowLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <div>
+                            <h1 className="text-xl font-semibold">Donor Profile</h1>
+                            <p className="text-sm text-gray-500">Manage your donation profile</p>
                         </div>
-                        <div className="flex items-center space-x-2">
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        {activeTab === 'profile' && (
                             <button
-                                onClick={() => setIsEditing(!isEditing)}
-                                className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                onClick={() => (isEditing ? handleSubmit() : setIsEditing(true))}
+                                className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                             >
-                                <Edit3 className="w-4 h-4" />
-                                <span>Edit</span>
+                                <Edit3 className="w-4 h-4 mr-2" />
+                                {isEditing ? 'Save Changes' : 'Edit Profile'}
                             </button>
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
+                        )}
+                        <button
+                            onClick={() => setActiveTab(activeTab === 'profile' ? 'settings' : 'profile')}
+                            className="p-2 hover:bg-gray-100 rounded-full"
+                        >
+                            <Settings className="w-5 h-5 text-gray-600" />
+                        </button>
                     </div>
                 </div>
             </div>
 
+            {/* Main */}
             <div className="max-w-4xl mx-auto p-4 space-y-6">
-                {/* Profile Header Card */}
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-32 relative">
-                        <div className="absolute inset-0 bg-black/10"></div>
+                {/* Profile card */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 relative">
+                    <div className="absolute -top-12 left-6">
+                        <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
+                            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                <Heart className="w-8 h-8 text-white" />
+                            </div>
+                        </div>
                     </div>
-                    <div className="relative px-6 pb-6">
-                        {/* Profile Avatar */}
-                        <div className="absolute -top-12 left-6">
-                            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-white">
-                                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                                    <Heart className="w-8 h-8 text-white" />
+                    <div className="absolute -top-3 right-6">
+                        <button
+                            onClick={() => setActiveStatus(activeStatus === 'active' ? 'inactive' : 'active')}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(activeStatus)}`}
+                        >
+                            <span className="mr-1">{getStatusIcon(activeStatus)}</span>
+                            {activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1)}
+                        </button>
+                    </div>
+
+                    <div className="pt-16">
+                        {isEditing ? (
+                            <form className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="border p-2 rounded" placeholder="First Name" />
+                                    <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="border p-2 rounded" placeholder="Last Name" />
+                                    <input name="email" value={formData.email} onChange={handleInputChange} className="border p-2 rounded" placeholder="Email" />
+                                    <input name="phone" value={formData.phone} onChange={handleInputChange} className="border p-2 rounded" placeholder="Phone" />
+                                    <textarea name="address" value={formData.address} onChange={handleInputChange} className="border p-2 rounded col-span-2" placeholder="Address" />
+                                    <select name="organization" value={formData.organization} onChange={handleInputChange} className="border p-2 rounded">
+                                        {Object.entries(ORGANIZATION_LABELS).map(([key, label]) => (
+                                            <option key={key} value={key}>{label}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Status Badge */}
-                        <div className="absolute -top-3 right-6">
-                            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(profile.status)}`}>
-                                <span className="mr-1">{getStatusIcon(profile.status)}</span>
-                                {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
-                            </div>
-                        </div>
-
-                        <div className="pt-16 space-y-4">
+                            </form>
+                        ) : (
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    {profile.firstName} {profile.lastName}
-                                </h2>
-                                <p className="text-blue-600 font-medium">
-                                    {ORGANIZATION_LABELS[profile.organization]} Donor
-                                </p>
+                                <h2 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h2>
+                                <p className="text-blue-600">{ORGANIZATION_LABELS[profile.organization]} Donor</p>
                                 <p className="text-gray-500 text-sm flex items-center mt-1">
                                     <Calendar className="w-4 h-4 mr-1" />
                                     Member since {formatDate(profile.createdAt || profile.joinDate)}
                                 </p>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Stats Cards */}
+                {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-500 text-sm font-medium">Total Donations</p>
-                                <p className="text-2xl font-bold text-gray-800 mt-1">{profile.totalDonations}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <Package className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                        <div className="mt-4 flex items-center text-green-600 text-sm">
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            +12% this month
-                        </div>
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                        <p className="text-gray-500">Total Donations</p>
+                        <p className="text-2xl font-bold">{profile.totalDonations}</p>
                     </div>
-
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-500 text-sm font-medium">Meals Served</p>
-                                <p className="text-2xl font-bold text-gray-800 mt-1">{profile.mealsServed}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                                <Heart className="w-6 h-6 text-orange-600" />
-                            </div>
-                        </div>
-                        <div className="mt-4 flex items-center text-orange-600 text-sm">
-                            <Award className="w-4 h-4 mr-1" />
-                            Lives impacted
-                        </div>
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                        <p className="text-gray-500">Meals Served</p>
+                        <p className="text-2xl font-bold">{profile.mealsServed}</p>
                     </div>
-
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-500 text-sm font-medium">Impact Score</p>
-                                <p className="text-2xl font-bold text-gray-800 mt-1">{profile.impactScore}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <TrendingUp className="w-6 h-6 text-purple-600" />
-                            </div>
-                        </div>
-                        <div className="mt-4">
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${profile.impactScore}%` }}
-                                ></div>
-                            </div>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                        <p className="text-gray-500">Impact Score</p>
+                        <p className="text-2xl font-bold">{profile.impactScore}</p>
                     </div>
                 </div>
 
-                {/* Contact Information */}
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center">
-                        <User className="w-5 h-5 mr-2 text-blue-500" />
-                        Contact Information
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                                <Mail className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-gray-700">Email Address</p>
-                                    <p className="text-gray-600 break-all">{profile.email}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                                <Phone className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
-                                    <p className="text-gray-600">{profile.phone}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                                <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700">Address</p>
-                                    <p className="text-gray-600 leading-relaxed">{profile.address}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                                <Building className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700">Organization Type</p>
-                                    <p className="text-gray-600">{ORGANIZATION_LABELS[profile.organization]}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-6">Recent Activity</h3>
-
-                    <div className="space-y-4">
-                        {[
-                            { action: 'Food donation completed', location: 'Downtown Community Center', time: '2 hours ago', type: 'donation' },
-                            { action: 'Profile updated', location: 'Contact information', time: '1 day ago', type: 'update' },
-                            { action: 'New recipient connected', location: 'Local Food Bank', time: '3 days ago', type: 'connection' },
-                        ].map((activity, index) => (
-                            <div key={index} className="flex items-center space-x-4 p-4 hover:bg-gray-50 rounded-lg transition-colors">
-                                <div className={`w-3 h-3 rounded-full ${activity.type === 'donation' ? 'bg-green-400' :
-                                    activity.type === 'update' ? 'bg-blue-400' : 'bg-purple-400'
-                                    }`}></div>
-                                <div className="flex-1">
-                                    <p className="text-gray-800 font-medium">{activity.action}</p>
-                                    <p className="text-gray-500 text-sm">{activity.location}</p>
-                                </div>
-                                <p className="text-gray-400 text-sm">{activity.time}</p>
-                            </div>
-                        ))}
-                    </div>
+                {/* Contact Info */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                    <p>Email: {profile.email}</p>
+                    <p>Phone: {profile.phone}</p>
+                    <p>Address: {profile.address}</p>
+                    <p>Organization: {ORGANIZATION_LABELS[profile.organization]}</p>
                 </div>
             </div>
         </div>

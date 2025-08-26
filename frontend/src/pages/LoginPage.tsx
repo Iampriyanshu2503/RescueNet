@@ -1,8 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Mail, Lock, Heart, AlertCircle, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import authService from '../services/authService';
-import { AuthContext } from '../context/AuthDonorContext';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../store/authSlice';
+import { getDashboardRoute } from '../utils/helpers';
+import { showNotification } from '../utils/notificationUtils';
 
 export default function FoodBanquetLogin() {
     const [email, setEmail] = useState('');
@@ -10,13 +12,13 @@ export default function FoodBanquetLogin() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const authContext = useContext(AuthContext);
-
+    const dispatch = useDispatch();
 
     const handleLogin = async () => {
         // Validate form
         if (!email || !password) {
             setError('Please enter both email and password');
+            showNotification.warning('Please enter both email and password');
             return;
         }
 
@@ -24,24 +26,32 @@ export default function FoodBanquetLogin() {
         setError('');
 
         try {
-            // Call login API
-            const userData = await authService.login({ email, password });
+            // Use Redux action for login
+            const result = await dispatch(loginUser({ email, password }) as any);
             
-            // Update auth context if available
-            if (authContext) {
-                authContext.login({
-                    id: userData._id,
-                    firstName: userData.name.split(' ')[0] || '',
-                    lastName: userData.name.split(' ')[1] || '',
-                    email: userData.email
-                }, userData.token);
+            if (loginUser.fulfilled.match(result)) {
+                // Login successful
+                console.log('Login successful:', result.payload);
+                const user = result.payload.user;
+                
+                // Show success notification
+                showNotification.success(`Welcome back, ${user.name}!`);
+                
+                // Redirect to role-specific dashboard based on user role
+                const dashboardRoute = getDashboardRoute(user.role);
+                navigate(dashboardRoute);
+            } else {
+                // Login failed
+                const errorMessage = result.payload || 'Login failed. Please check your credentials.';
+                setError(errorMessage);
+                showNotification.error(errorMessage);
             }
-
-            // Redirect to role selection page after successful login
-            navigate('/select-role');
         } catch (err: any) {
             // Handle login error
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            console.error('Login error:', err);
+            const errorMessage = 'Network error. Please check your connection and try again.';
+            setError(errorMessage);
+            showNotification.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

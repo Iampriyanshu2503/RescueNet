@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Camera, Users, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Camera, Users, Clock, MapPin, AlertCircle, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import { foodDonationService } from '../../services/foodDonationService';
+import type { CreateFoodDonationRequest } from '../../types/foodListing';
+import { showNotification } from '../../utils/notificationUtils';
+import LocationPicker from '../maps/LocationPicker';
+import InteractiveMap from '../maps/InteractiveMap';
 
 interface FormData {
     foodType: string;
     servings: string;
     description: string;
     bestBefore: string;
+    bestBeforeHours: string;
+    bestBeforeMinutes: string;
     allergens: string[];
     pickupInstructions: string;
+    location: any;
 }
 
 export default function AddSurplusFood() {
@@ -19,11 +26,18 @@ export default function AddSurplusFood() {
         servings: '',
         description: '',
         bestBefore: '',
+        bestBeforeHours: '',
+        bestBeforeMinutes: '',
         allergens: [],
-        pickupInstructions: ''
+        pickupInstructions: '',
+        location: null
     });
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+    const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+    const [showLocationHelp, setShowLocationHelp] = useState(false);
 
     const allergenOptions = [
         'Contains Gluten',
@@ -35,11 +49,27 @@ export default function AddSurplusFood() {
         'Contains Seafood'
     ];
 
-    const handleInputChange = (field: string, value: any) => {
+    const handleInputChange = (field: keyof FormData, value: any) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+    };
+
+    const handleLocationSelect = (location: any) => {
+        setFormData(prev => ({
+            ...prev,
+            location: location
+        }));
+        
+        // Clear location validation error when a location is selected
+        if (location && validationErrors.location) {
+            setValidationErrors(prev => {
+                const newErrors = {...prev};
+                delete newErrors.location;
+                return newErrors;
+            });
+        }
     };
 
     const handleAllergenToggle = (allergen: string) => {
@@ -52,7 +82,7 @@ export default function AddSurplusFood() {
     };
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files && event.target.files[0];
+        const file = event.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -66,12 +96,164 @@ export default function AddSurplusFood() {
 
     const handleBack = () => {
         navigate('/donor-dashboard');
-        console.log('Back button clicked');
     };
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        navigate('/donor-dashboard');
+    // Get user's current location for context
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    console.log('Error getting location:', error);
+                }
+            );
+        }
+    }, []);
+
+    const validateForm = () => {
+        const errors: {[key: string]: string} = {};
+        
+        if (!formData.foodType) {
+            errors.foodType = 'Food type is required';
+        }
+        
+        if (!formData.servings) {
+            errors.servings = 'Number of servings is required';
+        }
+        
+        if (!formData.description) {
+            errors.description = 'Description is required';
+        }
+        
+        if (!formData.bestBeforeHours && !formData.bestBeforeMinutes) {
+            errors.bestBefore = 'Best before time is required';
+        }
+
+        if (!formData.location) {
+            errors.location = 'Pickup location is required';
+        } else if (!formData.location.coordinates) {
+            errors.location = 'Please select a location with valid coordinates';
+        }
+        
+        return errors;
+    };
+
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        
+        // Validate form
+        const errors = validateForm();
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            
+            // Create a specific error message listing missing fields
+            const missingFields = Object.keys(errors).map(key => {
+                switch(key) {
+                    case 'foodType': return 'Food Type';
+                    case 'servings': return 'Servings';
+                    case 'description': return 'Description';
+                    case 'bestBefore': return 'Best Before Time';
+                    case 'location': return 'Pickup Location';
+                    default: return key;
+                }
+            }).join(', ');
+            
+            showNotification.error(`Please fill in these required fields: ${missingFields}`);
+            return;
+        }
+        
+        setIsSubmitting(true);
+
+        try {
+            const pickupInstructions = formData.pickupInstructions || 'Contact for pickup details';
+
+            // Format the bestBefore time
+            const hours = parseInt(formData.bestBeforeHours) || 0;
+            const minutes = parseInt(formData.bestBeforeMinutes) || 0;
+            const totalHours = hours + minutes / 60;
+            const bestBefore = totalHours.toString();
+
+            // Create payload without image first
+            const payload: CreateFoodDonationRequest = {
+                foodType: formData.foodType,
+                servings: formData.servings,
+                description: formData.description,
+                bestBefore,
+                allergens: formData.allergens,
+                pickupInstructions,
+                location: formData.location,
+            };
+            
+            // Process image - resize if needed and validate
+            let processedImage = null;
+            if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('data:image')) {
+                // Check if image is too large (over ~5MB when encoded)
+                if (selectedImage.length > 7000000) {
+                    // Image is too large, show warning but continue with submission
+                    console.warn('Image is too large, submitting without image');
+                    showNotification.warning('Image is too large and will not be included');
+                } else {
+                    processedImage = selectedImage;
+                }
+            }
+            
+            // Only add valid processed image to payload
+            if (processedImage) {
+                payload.image = processedImage;
+            }
+
+            console.log('Submitting payload:', payload);
+            const response = await foodDonationService.create(payload);
+            console.log('Submission response:', response);
+
+            // Reset form after success
+            setFormData({
+                foodType: '',
+                servings: '',
+                description: '',
+                bestBefore: '',
+                bestBeforeHours: '',
+                bestBeforeMinutes: '',
+                allergens: [],
+                pickupInstructions: '',
+                location: null
+            });
+            setSelectedImage(null);
+            setValidationErrors({});
+
+            showNotification.success('Food listing submitted successfully!');
+            navigate('/donor-dashboard');
+        } catch (error: any) {
+            console.error('Failed to create food donation', error);
+            let errorMessage = 'Failed to submit food listing. Please try again.';
+            let errorDetails = '';
+            
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+                // Check for validation errors from backend
+                if (error.response.data.errors) {
+                    errorDetails = Object.keys(error.response.data.errors)
+                        .map(field => `${field}: ${error.response.data.errors[field]}`)
+                        .join(', ');
+                }
+            } else if (error.message && error.message.includes('Network Error')) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            showNotification.error(errorMessage);
+            if (errorDetails) {
+                showNotification.error(`Validation errors: ${errorDetails}`);
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -94,6 +276,7 @@ export default function AddSurplusFood() {
                 </div>
             </div>
 
+            {/* Form Content */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <div className="p-8 space-y-8">
@@ -141,19 +324,21 @@ export default function AddSurplusFood() {
                             <div className="space-y-6">
                                 {/* Food Type */}
                                 <div>
-                                    <label htmlFor="foodType" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Food Type <span className="text-red-500">*</span>
                                     </label>
                                     <select
-                                        id="foodType"
                                         value={formData.foodType}
                                         onChange={(e) => handleInputChange('foodType', e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-gray-700"
+                                        className={`w-full px-4 py-3 border ${validationErrors.foodType ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
                                     >
                                         <option value="">Select food category</option>
                                         <option value="main-course">Main Course</option>
                                         <option value="appetizer">Appetizer</option>
                                         <option value="dessert">Dessert</option>
+                                    {validationErrors.foodType && (
+                                        <p className="mt-1 text-sm text-red-500">{validationErrors.foodType}</p>
+                                    )}
                                         <option value="beverages">Beverages</option>
                                         <option value="snacks">Snacks</option>
                                         <option value="fruits">Fruits</option>
@@ -161,21 +346,24 @@ export default function AddSurplusFood() {
                                     </select>
                                 </div>
 
-                                {/* Number of Servings */}
+                                {/* Servings */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Number of Servings <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                        <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                         <input
                                             type="number"
                                             placeholder="e.g. 25"
                                             value={formData.servings}
                                             onChange={(e) => handleInputChange('servings', e.target.value)}
-                                            className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                                            className={`w-full pl-12 pr-4 py-3 border ${validationErrors.servings ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
                                         />
                                     </div>
+                                    {validationErrors.servings && (
+                                        <p className="mt-1 text-sm text-red-500">{validationErrors.servings}</p>
+                                    )}
                                 </div>
 
                                 {/* Description */}
@@ -184,30 +372,121 @@ export default function AddSurplusFood() {
                                         Description <span className="text-red-500">*</span>
                                     </label>
                                     <textarea
-                                        placeholder="Describe the food items, taste, and any special details..."
                                         value={formData.description}
                                         onChange={(e) => handleInputChange('description', e.target.value)}
-                                        rows={4}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 resize-none"
+                                        placeholder="Describe the food (e.g., ingredients, preparation)"
+                                        rows={3}
+                                        className={`w-full px-4 py-3 border ${validationErrors.description ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 resize-none`}
                                     />
+                                    {validationErrors.description && (
+                                        <p className="mt-1 text-sm text-red-500">{validationErrors.description}</p>
+                                    )}
                                 </div>
 
                                 {/* Best Before */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Best Before (Hours from now) <span className="text-red-500">*</span>
+                                        Best Before (Time from now) <span className="text-red-500">*</span>
                                     </label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input
-                                            type="number"
-                                            placeholder="e.g. 4"
-                                            value={formData.bestBefore}
-                                            onChange={(e) => handleInputChange('bestBefore', e.target.value)}
-                                            className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                                        />
+                                    <div className="flex space-x-4">
+                                        <div className="relative flex-1">
+                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="Hours"
+                                                value={formData.bestBeforeHours}
+                                                onChange={(e) => handleInputChange('bestBeforeHours', e.target.value)}
+                                                className={`w-full pl-12 pr-4 py-3 border ${validationErrors.bestBefore ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
+                                            />
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">hrs</span>
+                                        </div>
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="59"
+                                                placeholder="Minutes"
+                                                value={formData.bestBeforeMinutes}
+                                                onChange={(e) => handleInputChange('bestBeforeMinutes', e.target.value)}
+                                                className={`w-full px-4 py-3 border ${validationErrors.bestBefore ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
+                                            />
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">mins</span>
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-1">How many hours until the food should be consumed</p>
+                                    {validationErrors.bestBefore ? (
+                                        <p className="text-sm text-red-500 mt-1">{validationErrors.bestBefore}</p>
+                                    ) : (
+                                        <p className="text-xs text-gray-500 mt-1">How many hours until the food should be consumed</p>
+                                    )}
+                                </div>
+
+                                {/* Pickup Location */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Pickup Location <span className="text-red-500">*</span>
+                                    </label>
+                                                                         <div className="relative">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm text-gray-500">Select a precise location for food pickup</span>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShowLocationHelp(!showLocationHelp)}
+                                                className="text-blue-500 hover:text-blue-700 flex items-center"
+                                            >
+                                                <Info className="w-4 h-4 mr-1" />
+                                                <span className="text-xs">Help</span>
+                                            </button>
+                                        </div>
+                                        
+                                        {showLocationHelp && (
+                                            <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-800">
+                                                <p className="font-medium mb-1">Location Selection Tips:</p>
+                                                <ul className="list-disc pl-5 space-y-1">
+                                                    <li>Use the search box to find your exact address</li>
+                                                    <li>Click "Use current location" for your present position</li>
+                                                    <li>Ensure the selected location has valid coordinates</li>
+                                                    <li>A precise location helps volunteers find your donation</li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                        
+                                        <LocationPicker 
+                                            onLocationSelect={handleLocationSelect} 
+                                            required={true}
+                                            showMap={true}
+                                        />
+                                        
+                                        {validationErrors.location && (
+                                            <div className="mt-2 flex items-center space-x-2 text-red-600">
+                                                <AlertCircle className="w-4 h-4" />
+                                                <span className="text-sm">{validationErrors.location}</span>
+                                            </div>
+                                        )}
+                                        
+                                        {formData.location && formData.location.coordinates && (
+                                            <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+                                                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                                    <h3 className="text-sm font-medium text-gray-700">Location Preview</h3>
+                                                </div>
+                                                <div className="h-48">
+                                                    <InteractiveMap
+                                                        foodListings={[{
+                                                            id: 'preview',
+                                                            title: 'Pickup Location',
+                                                            description: formData.description || 'Food donation pickup',
+                                                            location: {
+                                                                coordinates: formData.location.coordinates
+                                                            }
+                                                        }]}
+                                                        userLocation={userLocation}
+                                                        height="100%"
+                                                        showUserLocation={true}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -215,17 +494,17 @@ export default function AddSurplusFood() {
                         {/* Allergen Information */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Allergen Information</h3>
-                            <p className="text-sm text-gray-600 mb-4">Select all applicable allergens</p>
-
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {allergenOptions.map((allergen) => (
                                     <button
                                         key={allergen}
+                                        type="button"
                                         onClick={() => handleAllergenToggle(allergen)}
-                                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${formData.allergens.includes(allergen)
-                                            ? 'bg-red-50 border-red-200 text-red-700'
-                                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                                            }`}
+                                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                            formData.allergens.includes(allergen)
+                                                ? 'bg-red-50 border-red-200 text-red-700'
+                                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                                        }`}
                                     >
                                         {allergen}
                                     </button>
@@ -237,11 +516,11 @@ export default function AddSurplusFood() {
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Pickup Instructions</h3>
                             <textarea
-                                placeholder="Provide specific instructions for pickup location, timing, contact person, etc..."
+                                placeholder="Provide specific instructions..."
                                 value={formData.pickupInstructions}
                                 onChange={(e) => handleInputChange('pickupInstructions', e.target.value)}
                                 rows={4}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 resize-none"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 resize-none"
                             />
                         </div>
                     </div>
@@ -253,14 +532,13 @@ export default function AddSurplusFood() {
                 <div className="max-w-4xl mx-auto">
                     <button
                         onClick={handleSubmit}
-                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg"
+                        disabled={isSubmitting}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg disabled:opacity-50"
                     >
-                        POST LISTING
+                        {isSubmitting ? 'Submitting...' : 'POST LISTING'}
                     </button>
                 </div>
             </div>
-
-            {/* Bottom padding to prevent content being hidden behind fixed button */}
             <div className="h-24"></div>
         </div>
     );

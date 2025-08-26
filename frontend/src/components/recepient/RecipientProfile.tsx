@@ -22,6 +22,8 @@ import {
     ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ProfileStats from '../common/ProfileStats';
+import { useAuth } from '../../hooks/useAuth';
 
 interface UserProfile {
     name: string;
@@ -243,6 +245,16 @@ const RecipientProfile: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Enhanced Profile Stats */}
+                <ProfileStats 
+                    user={useAuth().user}
+                    stats={{
+                        successfulPickups: profile.stats.successfulPickups,
+                        monthsActive: profile.stats.monthsActive || 2,
+                        impactRating: 4.5
+                    }}
+                />
+                
                 {/* Impact Card */}
                 <div className="bg-gradient-to-r from-green-50/80 to-blue-50/80 backdrop-blur-sm rounded-2xl p-6 border border-green-200/50 shadow-lg">
                     <div className="flex items-center gap-3 mb-4">

@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { getDashboardRoute } from '../utils/helpers';
 import { 
   ShoppingCart, 
   Bell, 
@@ -19,6 +22,15 @@ import {
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const dashboardRoute = getDashboardRoute(user.role);
+      navigate(dashboardRoute);
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleJoinPlatform = () => {
     navigate('/login');

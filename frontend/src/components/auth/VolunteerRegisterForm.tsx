@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Mail, Phone, MapPin, HandHeart, Eye, EyeOff, Clock, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { registerUser } from '../../store/authSlice';
 
 type FormData = {
     firstName: string;
@@ -30,6 +32,7 @@ type FormErrors = {
 
 export default function VolunteerRegisterForm() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<FormErrors>({});
@@ -120,22 +123,40 @@ export default function VolunteerRegisterForm() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         if (!validateForm()) return;
 
         setIsLoading(true);
+        setErrors({});
 
         try {
-            // Simulate API call
-            setTimeout(() => {
-                setIsLoading(false);
+            const userData = {
+                name: `${formData.firstName} ${formData.lastName}`,
+                email: formData.email,
+                password: formData.password,
+                role: 'volunteer' as const,
+                phone: formData.phone,
+                address: formData.address,
+                organization: formData.organization,
+                availability: formData.availability,
+                hasVehicle: formData.hasVehicle,
+                experience: formData.experience
+            };
+
+            const result = await dispatch(registerUser(userData as any) as any);
+
+            if (registerUser.fulfilled.match(result)) {
                 alert('Registration successful! Please log in with your credentials.');
                 navigate('/login');
-            }, 2000);
+            } else {
+                const errorMessage = result.payload || 'Registration failed. Please try again.';
+                setErrors({ submit: errorMessage });
+            }
         } catch (error) {
-            setErrors({ submit: 'Registration failed. Please try again.' });
+            setErrors({ submit: 'Network error. Please try again.' });
+        } finally {
             setIsLoading(false);
         }
     };
@@ -369,7 +390,8 @@ export default function VolunteerRegisterForm() {
                         {/* Error Message */}
                         {errors.submit && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                <p className="text-red-600 text-sm">{errors.submit}</p>
+                                <p className="text-red-600 text-sm font-medium">Registration Failed</p>
+                                <p className="text-red-500 text-xs mt-1">{errors.submit}</p>
                             </div>
                         )}
 

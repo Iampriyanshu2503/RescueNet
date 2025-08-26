@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { foodDonationService } from '../../services/foodDonationService';
+import type { FoodDonation } from '../../types/foodListing';
+import { handleExpiredListings } from '../../utils/expirationUtils';
 import {
     Users,
     TrendingUp,
@@ -18,9 +21,13 @@ import {
     CheckCircle,
     Info,
     BarChart3,
-    Sparkles
+    Sparkles,
+    MapPin,
+    Map
 } from 'lucide-react';
 import DetailedAnalyticsModal from './DetailedAnalyticsModal';
+import FoodListingVisibility from '../common/FoodListingVisibility';
+import InteractiveMap from '../maps/InteractiveMap';
 
 interface StatCardProps {
     icon: React.ElementType;
@@ -159,6 +166,84 @@ const ListingCard: React.FC<{
                     </button>
                 </div>
             </div>
+
+            {/* Map View Section */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+                    <div className="p-6 border-b border-gray-200/50">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Map className="w-5 h-5 text-green-600" />
+                                <h2 className="text-lg font-semibold text-gray-900">Your Donation Locations</h2>
+                            </div>
+                            <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-600 hover:text-gray-800'}`}
+                                >
+                                    List View
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('map')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'map' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-600 hover:text-gray-800'}`}
+                                >
+                                    Map View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-6">
+                        {viewMode === 'list' ? (
+                            <div className="space-y-4">
+                                {myListings.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <p className="text-gray-500">No active donations to display</p>
+                                        <button
+                                            onClick={handleAddSurplusFood}
+                                            className="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                                        >
+                                            Add New Donation
+                                        </button>
+                                    </div>
+                                ) : (
+                                    myListings.map((listing) => (
+                                        <div key={listing._id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-medium text-gray-900">{listing.foodType}</h3>
+                                                    <p className="text-sm text-gray-600 mt-1">{listing.description}</p>
+                                                    {listing.location && listing.location.address && (
+                                                        <div className="flex items-center mt-2 text-sm text-gray-500">
+                                                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
+                                                            {listing.location.address}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className={`px-2 py-1 text-xs rounded-full ${listing.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                    {listing.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        ) : (
+                            <div>
+                                <InteractiveMap
+                                    foodListings={myListings}
+                                    userLocation={userLocation}
+                                    height="500px"
+                                    showUserLocation={true}
+                                />
+                                <div className="mt-4 text-sm text-gray-500 flex items-center">
+                                    <Info className="w-4 h-4 mr-1" />
+                                    <span>Map shows all your active donation locations</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -168,6 +253,8 @@ export default function DonorDashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
     const [selectedAnalyticsType, setSelectedAnalyticsType] = useState<'donations' | 'people-served' | 'active-listings' | 'pickup-requests' | null>(null);
+    const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -257,38 +344,36 @@ export default function DonorDashboard() {
         }
     ];
 
-    const activeListings = [
-        {
-            title: 'Fresh Sandwiches from Café',
-            servings: 25,
-            timeAgo: '2 hours ago',
-            timeLeft: '3 hours left',
-            views: 12,
-            requests: 3,
-            status: 'active',
-            image: '🥪'
-        },
-        {
-            title: 'Leftover Pizza Slices',
-            servings: 15,
-            timeAgo: '4 hours ago',
-            timeLeft: '7 requests',
-            views: 18,
-            requests: 7,
-            status: 'active',
-            image: '🍕'
-        },
-        {
-            title: 'Conference Lunch Boxes',
-            servings: 20,
-            timeAgo: '6 hours ago',
-            timeLeft: 'Completed',
-            views: 25,
-            requests: 15,
-            status: 'completed',
-            image: '🍱'
+    const [myListings, setMyListings] = useState<FoodDonation[]>([]);
+
+    useEffect(() => {
+        const loadMyDonations = async () => {
+            try {
+                const items = await foodDonationService.getMyDonations();
+                setMyListings(items);
+            } catch (e) {
+                console.error('Failed to fetch my donations', e);
+            }
+        };
+        loadMyDonations();
+    }, []);
+    
+    // Get user's current location
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                }
+            );
         }
-    ];
+    }, []);
 
     const recentActivity = [
         {
@@ -365,7 +450,7 @@ export default function DonorDashboard() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
                     {/* Quick Actions */}
                     <div className="lg:col-span-1 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
                         <div className="flex items-center gap-2 mb-6">
@@ -428,9 +513,13 @@ export default function DonorDashboard() {
                             </div>
                         </div>
                         <div className="p-6 space-y-4">
-                            {activeListings.map((listing, index) => (
-                                <ListingCard key={index} {...listing} />
-                            ))}
+                            {myListings.length === 0 ? (
+                                <div className="text-sm text-gray-500">No active listings yet. Create one to get started.</div>
+                            ) : (
+                                myListings.map((item) => (
+                                    <FoodListingVisibility key={item._id} listing={item} />
+                                ))
+                            )}
                         </div>
                     </div>
 

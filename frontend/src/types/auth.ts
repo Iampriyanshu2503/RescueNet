@@ -1,4 +1,10 @@
 export interface User {
+  totalDonations: number;
+  impactScore: number;
+  mealsServed: number;
+  organization: string;
+  phone: string;
+  address: string;
   _id: string;
   name: string;
   email: string;

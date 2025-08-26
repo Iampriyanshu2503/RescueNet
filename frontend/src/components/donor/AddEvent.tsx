@@ -21,6 +21,14 @@ import {
     ImageIcon
 } from 'lucide-react';
 
+import { foodDonationService } from '../../services/foodDonationService';
+import type { CreateFoodDonationRequest } from '../../types/foodListing';
+
+const showNotification = {
+  success: (msg: string) => alert(`✅ ${msg}`),
+  error: (msg: string) => alert(`❌ ${msg}`)
+};
+
 interface FormData {
     foodType: string;
     estimatedQuantity: string;
@@ -28,18 +36,26 @@ interface FormData {
     additionalNotes: string;
     availableUntil: string;
     location: string;
+    description: string;       // New
+    expiryDate: string;        // New
+    allergens: string[];       // New
+    pickupDetails: string;     // New
 }
 
 const ListEventFood: React.FC = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState<FormData>({
-        foodType: '',
-        estimatedQuantity: '',
-        freshnessStatus: '',
-        additionalNotes: '',
-        availableUntil: '',
-        location: ''
-    });
+    foodType: '',
+    estimatedQuantity: '',
+    freshnessStatus: '',
+    additionalNotes: '',
+    availableUntil: '',
+    location: '',
+    description: '',
+    expiryDate: '',
+    allergens: [],
+    pickupDetails: ''
+});
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -82,10 +98,30 @@ const ListEventFood: React.FC = () => {
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsSubmitting(false);
-        alert('Food listing submitted successfully!');
+        try {
+            // Convert event food listing to regular food donation format
+            const payload: CreateFoodDonationRequest = {
+                foodType: formData.foodType,
+                servings: formData.estimatedQuantity,
+                description: `Event Food: ${formData.description || 'Food from event'}`,
+                bestBefore: formData.expiryDate || new Date(Date.now() + 86400000).toISOString().split('T')[0], // Default to tomorrow
+                allergens: formData.allergens || [],
+                pickupInstructions: formData.pickupDetails || 'Contact for pickup details',
+                image: selectedImage || undefined,
+            };
+            
+            console.log('Submitting event food listing:', payload);
+            const response = await foodDonationService.create(payload);
+            console.log('Event food listing response:', response);
+            
+            showNotification.success('Event food listing submitted successfully!');
+            navigate('/donor-dashboard');
+        } catch (error) {
+            console.error('Failed to create event food listing', error);
+            showNotification.error('Failed to submit event food listing. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const isFormValid = formData.foodType && formData.estimatedQuantity && formData.freshnessStatus;

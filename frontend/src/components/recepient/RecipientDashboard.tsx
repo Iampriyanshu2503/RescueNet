@@ -1,216 +1,159 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Clock, Star, Users, Filter, Home, FileText, MessageCircle, User, Recycle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, Clock, Star, Users, Filter, Home, FileText, MessageCircle, User, Recycle, Map, List, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface FoodListing {
-    id: string;
-    title: string;
-    restaurant: string;
-    rating: number;
-    quantity: number;
-    pickup: {
-        start: string;
-        end: string;
-    };
-    location: {
-        address: string;
-        distance: string;
-    };
-    tags: string[];
-    status: 'Fresh Today' | 'Expires Soon' | 'Urgent Pickup';
-    image?: string;
-    availableUntil: string;
-    isPickupOnly?: boolean;
-}
-
-const mockListings: FoodListing[] = [
-    {
-        id: '1',
-        title: 'Fresh Biryani & Raita',
-        restaurant: 'Rajesh Biryani House',
-        rating: 4.8,
-        quantity: 25,
-        pickup: { start: '11:00 AM', end: '1:00 PM' },
-        location: { address: 'Sector V, Salt Lake', distance: '0.8 km' },
-        tags: ['Vegetarian', 'Spicy', 'Halal'],
-        status: 'Fresh Today',
-        availableUntil: '12:00 PM - 2:00 PM'
-    },
-    {
-        id: '2',
-        title: 'South Indian Thali',
-        restaurant: 'Priya\'s South Kitchen',
-        rating: 4.9,
-        quantity: 30,
-        pickup: { start: '12:30 PM', end: '2:30 PM' },
-        location: { address: 'Park Street', distance: '1.2 km' },
-        tags: ['South Indian', 'Gluten-free'],
-        status: 'Expires Soon',
-        availableUntil: '1:05 PM - 3:30 PM'
-    },
-    {
-        id: '3',
-        title: 'Bengali Fish Curry',
-        restaurant: 'Maa Durga Restaurant',
-        rating: 4.6,
-        quantity: 15,
-        pickup: { start: '1:00 PM', end: '2:00 PM' },
-        location: { address: 'New Market', distance: '2.1 km' },
-        tags: ['Bengali', 'Non-Veg'],
-        status: 'Urgent Pickup',
-        availableUntil: 'Pickup Only',
-        isPickupOnly: true
-    }
-];
+import { foodDonationService } from '../../services/foodDonationService';
+import { FoodDonation } from '../../types/foodListing';
+import FoodListingVisibility from '../common/FoodListingVisibility';
+import InteractiveMap from '../maps/InteractiveMap';
+import { showNotification } from '../../utils/notificationUtils';
+import { handleExpiredListings, isListingExpired } from '../../utils/expirationUtils';
+import useSocket from '../../hooks/useSocket';
 
 export default function FoodListingsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilter, setSelectedFilter] = useState('All Types');
-    const [listings] = useState<FoodListing[]>(mockListings);
+    const [listings, setListings] = useState<FoodDonation[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+    const [userLocation, setUserLocation] = useState(null);
+    const [selectedListing, setSelectedListing] = useState(null);
 
     const navigate = useNavigate();
+    const { notifications, getUnreadCount } = useSocket();
 
-    const filters = ['All Types', 'All Items', 'All Areas'];
+    const filters = ['All Types', 'Vegetarian', 'Non-Vegetarian', 'Vegan', 'Gluten-Free'];
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Fresh Today':
-                return 'bg-green-100 text-green-700 border-green-200';
-            case 'Expires Soon':
-                return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'Urgent Pickup':
-                return 'bg-red-100 text-red-700 border-red-200';
-            default:
-                return 'bg-gray-100 text-gray-700 border-gray-200';
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                setLoading(true);
+                const data = await foodDonationService.getAll();
+                // Filter only available listings that are not expired
+                const availableListings = data.filter(listing => 
+                    listing.status === 'available' && !isListingExpired(listing)
+                );
+                setListings(availableListings);
+            } catch (error) {
+                console.error('Failed to fetch food listings', error);
+                showNotification.error('Failed to load food listings. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchListings();
+    }, []);
+
+    useEffect(() => {
+        // Get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    console.log('Error getting location:', error);
+                    // Set default location (NYC)
+                    setUserLocation({ lat: 40.7128, lng: -74.0060 });
+                }
+            );
         }
-    };
-
-    const handleRequest = (listingId: string) => {
-        console.log('Requesting food listing:', listingId);
-        navigate(`/food-listings/${listingId}`);
-    };
-
-    const handleViewDetails = (listingId: string) => {
-        console.log('Viewing details for:', listingId);
-    };
+    }, []);
 
     const navigateToWastePickup = () => {
-        console.log('Navigate to waste pickup page');
         navigate('/waste-to-energy');
     };
 
-    const handleSearch = () => {
-        console.log('Navigate to search page');
-        navigate('/search');
+    const handleListingClick = (listing) => {
+        setSelectedListing(listing);
+        navigate(`/food-listings/${listing._id}`);
     };
 
-    const handleRequestHistory = () => {
-        console.log('Navigate to pickup history');
-        navigate('/pickup-history');
-    };
+    // Filter listings based on search query and selected filter
+    const filteredListings = listings.filter(listing => {
+        const matchesSearch = searchQuery === '' || 
+            listing.foodType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            listing.description.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesFilter = selectedFilter === 'All Types' || 
+            (listing.allergens && listing.allergens.includes(selectedFilter));
+        
+        return matchesSearch && matchesFilter;
+    });
 
-    const handleChatSupport = () => {
-        console.log('Opening chat support');
-        // For now, provide contact information until full chat is implemented
-        const contactInfo = 'Chat Support\\n\\nFor immediate assistance:\\n📞 Phone: +1 (555) 123-HELP\\n📧 Email: support@foodshare.org\\n\\nLive chat coming soon!';
-        alert(contactInfo);
-    };
-
-    const handleProfile = () => {
-        console.log('Navigate to recipient profile');
-        navigate('/recipient-profile');
+    const getUnreadNotificationsCount = () => {
+        return getUnreadCount();
     };
 
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between py-3 sm:py-4">
-                        <div className="flex items-center min-w-0 flex-1">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
-                                <span className="text-white font-bold text-base sm:text-lg">H</span>
+            <div className="bg-white shadow-sm">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="py-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900">Find Available Food</h1>
+                                <p className="text-sm text-gray-600 mt-1">Browse and request surplus food donations</p>
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Hope Foundation</h1>
-                                <div className="flex items-center">
-                                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
-                                    <span className="text-xs sm:text-sm text-gray-600 ml-1">4.9 (99 reviews)</span>
+                            <div className="flex items-center space-x-2">
+                                {/* Notification Badge */}
+                                {getUnreadNotificationsCount() > 0 && (
+                                    <div className="relative">
+                                        <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            {getUnreadNotificationsCount()}
+                                        </div>
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                    </div>
+                                )}
+                                
+                                {/* View Mode Toggle */}
+                                <div className="flex bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode('list')}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                            viewMode === 'list'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        <List className="w-4 h-4 inline mr-1" />
+                                        List
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('map')}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                            viewMode === 'map'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        <Map className="w-4 h-4 inline mr-1" />
+                                        Map
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <button
-                            onClick={navigateToWastePickup}
-                            className="bg-green-500 hover:bg-green-600 active:scale-95 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg flex items-center ml-2"
-                        >
-                            <Recycle className="w-4 h-4 mr-1 sm:mr-2" />
-                            <span className="hidden sm:inline">Waste Pickup</span>
-                            <span className="sm:hidden">Pickup</span>
-                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Action Tabs */}
-            <div className="bg-white border-b border-gray-200">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 sm:py-4">
-                        <button
-                            onClick={handleRequestHistory}
-                            className="flex flex-col items-center p-3 sm:p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200 transition-all duration-300 hover:scale-105 active:scale-95"
-                        >
-                            <FileText className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-                            <span className="text-xs sm:text-sm font-medium text-center leading-tight">Request History</span>
-                        </button>
-                        <button
-                            onClick={handleChatSupport}
-                            className="flex flex-col items-center p-3 sm:p-4 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 active:bg-green-200 transition-all duration-300 hover:scale-105 active:scale-95"
-                        >
-                            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-                            <span className="text-xs sm:text-sm font-medium text-center leading-tight">Chat Support</span>
-                        </button>
-                        <button
-                            onClick={navigateToWastePickup}
-                            className="flex flex-col items-center p-3 sm:p-4 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 active:bg-orange-200 transition-all duration-300 hover:scale-105 active:scale-95"
-                        >
-                            <Recycle className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-                            <span className="text-xs sm:text-sm font-medium text-center leading-tight">Waste Pickup</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-                {/* Section Header */}
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Live Food Listings</h2>
-                        <p className="text-green-600 font-medium mt-1 flex items-center text-sm sm:text-base">
-                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                            3 Available Near You
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => navigate('/search')}
-                        className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 sm:px-4 py-2 rounded-xl font-medium transition-all duration-300 hover:scale-105 active:scale-95 flex items-center"
-                    >
-                        <Search className="w-4 h-4 mr-1 sm:mr-2" />
-                        <span className="hidden sm:inline">Advanced Search</span>
-                        <span className="sm:hidden">Search</span>
-                    </button>
-                </div>
-
+            {/* Main Content */}
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Search and Filters */}
-                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <div className="mb-6">
+                    <div className="relative mb-4">
                         <input
                             type="text"
-                            placeholder="Search food items, restaurants, or cuisine..."
+                            placeholder="Search for food items..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 sm:py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-300 text-sm sm:text-base"
+                            className="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors"
                         />
+                        <Search className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
                     </div>
 
                     <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -233,156 +176,122 @@ export default function FoodListingsPage() {
                     </div>
                 </div>
 
-                {/* Food Listings */}
-                <div className="space-y-3 sm:space-y-4">
-                    {listings.map((listing) => (
-                        <div key={listing.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
-                            <div className="p-4 sm:p-6">
-                                <div className="flex items-start space-x-3 sm:space-x-4">
-                                    {/* Food Image */}
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner">
-                                        {listing.image ? (
-                                            <img src={listing.image} alt={listing.title} className="w-full h-full object-cover rounded-xl" />
-                                        ) : (
-                                            <div className="text-gray-400 text-xl sm:text-2xl">🍽️</div>
-                                        )}
+                {/* Content Based on View Mode */}
+                {viewMode === 'map' ? (
+                    /* Map View */
+                    <div className="space-y-6">
+                        <InteractiveMap
+                            foodListings={filteredListings}
+                            userLocation={userLocation}
+                            onListingClick={handleListingClick}
+                            height="500px"
+                            showUserLocation={true}
+                        />
+                        
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Total Available</p>
+                                        <p className="text-2xl font-bold text-gray-900">{filteredListings.length}</p>
                                     </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate">{listing.title}</h3>
-                                                <div className="flex items-center mb-2">
-                                                    <span className="text-gray-600 text-sm truncate">{listing.restaurant}</span>
-                                                    <div className="flex items-center ml-2 flex-shrink-0">
-                                                        <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
-                                                        <span className="text-xs sm:text-sm text-gray-600 ml-1">{listing.rating}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ml-2 ${getStatusColor(listing.status)}`}>
-                                                {listing.status}
-                                            </span>
-                                        </div>
-
-                                        {/* Details - Mobile Optimized */}
-                                        <div className="space-y-2 mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                <div className="flex items-center">
-                                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
-                                                    <span className="truncate">{listing.quantity} portions available</span>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
-                                                    <span className="truncate">{listing.location.address} • {listing.location.distance}</span>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
-                                                    <span className="truncate">Pickup: {listing.pickup.start} - {listing.pickup.end}</span>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-green-500 flex-shrink-0" />
-                                                    <span className="truncate font-medium text-green-600">{listing.availableUntil}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Tags */}
-                                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                                            {listing.tags.slice(0, 3).map((tag) => (
-                                                <span key={tag} className="px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                            {listing.tags.length > 3 && (
-                                                <span className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                                                    +{listing.tags.length - 3} more
-                                                </span>
-                                            )}
-                                            {listing.isPickupOnly && (
-                                                <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                                                    Pickup Only
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="flex space-x-2 sm:space-x-3">
-                                            <button
-                                                onClick={() => handleRequest(listing.id)}
-                                                className="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg text-sm sm:text-base"
-                                            >
-                                                Request Now
-                                            </button>
-                                            <button
-                                                onClick={() => handleViewDetails(listing.id)}
-                                                className="px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md text-sm sm:text-base"
-                                            >
-                                                Details
-                                            </button>
-                                        </div>
+                                    <div className="p-2 bg-blue-100 rounded-lg">
+                                        <MapPin className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Near You</p>
+                                        <p className="text-2xl font-bold text-gray-900">
+                                            {userLocation ? filteredListings.filter(l => l.location?.coordinates).length : 'N/A'}
+                                        </p>
+                                    </div>
+                                    <div className="p-2 bg-green-100 rounded-lg">
+                                        <Navigation className="w-6 h-6 text-green-600" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Fresh Today</p>
+                                        <p className="text-2xl font-bold text-gray-900">
+                                            {filteredListings.filter(l => {
+                                                const today = new Date();
+                                                const listingDate = new Date(l.createdAt);
+                                                return listingDate.toDateString() === today.toDateString();
+                                            }).length}
+                                        </p>
+                                    </div>
+                                    <div className="p-2 bg-yellow-100 rounded-lg">
+                                        <Clock className="w-6 h-6 text-yellow-600" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Notifications</p>
+                                        <p className="text-2xl font-bold text-gray-900">{getUnreadNotificationsCount()}</p>
+                                    </div>
+                                    <div className="p-2 bg-purple-100 rounded-lg">
+                                        <MessageCircle className="w-6 h-6 text-purple-600" />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ) : (
+                    /* List View */
+                    <div className="space-y-3 sm:space-y-4">
+                        {loading ? (
+                            <div className="text-center py-10">
+                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-blue-500 mb-4"></div>
+                                <p className="text-gray-600">Loading available food listings...</p>
+                            </div>
+                        ) : filteredListings.length > 0 ? (
+                            filteredListings.map((listing) => (
+                                <FoodListingVisibility key={listing._id} listing={listing} />
+                            ))
+                        ) : (
+                            <div className="text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Search className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No food listings found</h3>
+                                <p className="text-gray-600 max-w-md mx-auto">
+                                    There are currently no available food listings matching your criteria. Please check back later or try a different search.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                {/* Load More */}
-                <div className="text-center mt-6 sm:mt-8">
-                    <button className="bg-white border border-gray-200 text-gray-700 font-semibold py-3 px-6 sm:px-8 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md">
-                        Load More Listings
-                    </button>
-                </div>
-            </div>
-
-            {/* Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 shadow-lg">
-                <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-5 gap-1">
+                {/* Waste to Energy CTA */}
+                <div className="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Have organic waste?</h3>
+                            <p className="text-gray-600 max-w-md">
+                                Turn your organic waste into renewable energy. Schedule a pickup today!
+                            </p>
+                        </div>
                         <button
-                            onClick={() => navigate('/recipient-dashboard')}
-                            className="flex flex-col items-center py-2 px-1 text-blue-600 relative"
+                            onClick={navigateToWastePickup}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                         >
-                            <Home className="w-5 h-5 mb-1" />
-                            <span className="text-xs font-medium">Home</span>
-                            <div className="absolute -bottom-1 w-4 h-0.5 bg-blue-600 rounded-full"></div>
-                        </button>
-                        <button
-                            onClick={handleSearch}
-                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
-                        >
-                            <Search className="w-5 h-5 mb-1" />
-                            <span className="text-xs font-medium">Search</span>
-                        </button>
-                        <button
-                            onClick={handleRequestHistory}
-                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
-                        >
-                            <FileText className="w-5 h-5 mb-1" />
-                            <span className="text-xs font-medium">Requests</span>
-                        </button>
-                        <button
-                            onClick={handleChatSupport}
-                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
-                        >
-                            <MessageCircle className="w-5 h-5 mb-1" />
-                            <span className="text-xs font-medium">Chat</span>
-                        </button>
-                        <button
-                            onClick={handleProfile}
-                            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors"
-                        >
-                            <User className="w-5 h-5 mb-1" />
-                            <span className="text-xs font-medium">Profile</span>
+                            <Recycle className="w-5 h-5 mr-2 inline-block" />
+                            Schedule Pickup
                         </button>
                     </div>
                 </div>
             </div>
-
-            {/* Bottom padding */}
-            <div className="h-20"></div>
         </div>
     );
 }

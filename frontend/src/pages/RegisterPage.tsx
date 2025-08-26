@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
-    const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
     const handleRoleSelect = (role: string) => {
-        setSelectedRole(role);
         console.log(`Selected role for registration: ${role}`);
         if (role === 'donor') {
             navigate('/donor-register');
