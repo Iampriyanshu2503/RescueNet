@@ -187,8 +187,69 @@ const LocationPicker = ({
           alert('Could not find coordinates for this address. Please enter a valid address.');
         }
       });
+    } else if (manualLat && manualLng) {
+      // If address is empty but coordinates are provided
+      try {
+        const lat = parseFloat(manualLat);
+        const lng = parseFloat(manualLng);
+        
+        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          alert('Please enter valid latitude (-90 to 90) and longitude (-180 to 180) values.');
+          return;
+        }
+        
+        // Show loading state
+        setIsLoading(true);
+        
+        // Create coordinates object
+        const coordinates = {
+          lat: lat,
+          lng: lng
+        };
+        
+        // Try to get address from coordinates using reverse geocoding
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: coordinates }, (results, status) => {
+          setIsLoading(false);
+          
+          let address = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+          
+          // If geocoding is successful, use the formatted address
+          if (status === 'OK' && results[0]) {
+            address = results[0].formatted_address;
+          }
+          
+          const manualLocation = {
+            id: 'manual-coords',
+            address: address,
+            coordinates: coordinates,
+            type: 'manual'
+          };
+          
+          // Update the selected location
+          setSelectedLocation(manualLocation);
+          
+          // Update the search query
+          setSearchQuery(address);
+          
+          // Reset manual entry fields
+          setManualEntry(false);
+          setManualLat('');
+          setManualLng('');
+          
+          // Call the onLocationSelect callback
+          if (onLocationSelect) {
+            onLocationSelect(manualLocation);
+          }
+        });
+        
+        // The reverse geocoding is now handled in the code above
+      } catch (error) {
+        console.error('Error processing coordinates:', error);
+        alert('Invalid coordinates format. Please check your input.');
+      }
     } else {
-      alert('Please enter an address.');
+      alert('Please enter an address or coordinates.');
     }
   };
 
@@ -237,7 +298,7 @@ const LocationPicker = ({
             setManualEntry(false);
             setSearchQuery('');
           }}
-          className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center text-sm ${!manualEntry ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`flex-1 py-2.5 px-4 rounded-lg flex items-center justify-center text-sm font-medium ${!manualEntry ? 'bg-blue-100 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
         >
           <Search className="w-4 h-4 mr-2" />
           Search Address
@@ -248,7 +309,7 @@ const LocationPicker = ({
             setManualEntry(false);
             handleUseCurrentLocation();
           }}
-          className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center text-sm ${selectedLocation?.type === 'gps' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`flex-1 py-2.5 px-4 rounded-lg flex items-center justify-center text-sm font-medium ${selectedLocation?.type === 'gps' ? 'bg-blue-100 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
           disabled={!userLocation}
         >
           <Navigation className="w-4 h-4 mr-2" />
@@ -266,7 +327,7 @@ const LocationPicker = ({
               setManualEntry(false);
             }
           }}
-          className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center text-sm ${manualEntry ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`flex-1 py-2.5 px-4 rounded-lg flex items-center justify-center text-sm font-medium ${manualEntry ? 'bg-blue-100 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
         >
           <Keyboard className="w-4 h-4 mr-2" />
           Manual Entry
@@ -275,7 +336,7 @@ const LocationPicker = ({
 
       {/* Search Input */}
       {!manualEntry && (
-        <div className="relative">
+        <div className="mb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Autocomplete
@@ -287,9 +348,7 @@ const LocationPicker = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  required && !selectedLocation ? 'border-red-300' : ''
-                }`}
+                className={`w-full pl-10 pr-12 py-3 border ${required && !selectedLocation ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm`}
               />
             </Autocomplete>
             
@@ -297,7 +356,7 @@ const LocationPicker = ({
             {userLocation && (
               <button
                 onClick={handleUseCurrentLocation}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"
                 title="Use current location"
               >
                 <Navigation className="w-4 h-4 text-blue-500" />
@@ -307,7 +366,7 @@ const LocationPicker = ({
         </div>
       )}
 
-      {/* Manual Address Entry */}
+      {/* Manual Entry (Address or Coordinates) */}
       {manualEntry && (
         <div className="space-y-3">
           <div>
@@ -320,6 +379,36 @@ const LocationPicker = ({
               className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${required && !selectedLocation ? 'border-red-300' : ''}`}
             />
           </div>
+          
+          <div className="text-center text-sm text-gray-500 my-2">- OR -</div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+              <input
+                type="text"
+                value={manualLat}
+                onChange={(e) => setManualLat(e.target.value)}
+                placeholder="e.g. 40.7128"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+              <input
+                type="text"
+                value={manualLng}
+                onChange={(e) => setManualLng(e.target.value)}
+                placeholder="e.g. -74.0060"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div className="text-xs text-gray-500 mt-1">
+            <p>Enter either an address OR latitude/longitude coordinates</p>
+          </div>
+          
           <button
             onClick={handleManualLocationSubmit}
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center"

@@ -7,7 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 import ReviewForm from '../components/reviews/ReviewForm';
 import ReviewDisplay from '../components/reviews/ReviewDisplay';
-import { reviewService, Review } from '../services/reviewService';
+import { reviewService } from '../services/reviewService';
 
 const FoodListingDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +15,6 @@ const FoodListingDetails: React.FC = () => {
   const { user } = useAuth();
   const [foodListing, setFoodListing] = useState<FoodDonation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewForm, setShowReviewForm] = useState<boolean>(false);
 
   useEffect(() => {
@@ -26,15 +25,6 @@ const FoodListingDetails: React.FC = () => {
         // Fetch food listing details
         const data = await foodDonationService.getById(id);
         setFoodListing(data);
-        
-        // Fetch reviews for this food listing
-        try {
-          const reviewsData = await reviewService.getFoodListingReviews(id);
-          setReviews(reviewsData);
-        } catch (reviewError) {
-          console.error('Error fetching reviews:', reviewError);
-          // Don't show error toast for reviews, just log it
-        }
       } catch (error) {
         console.error('Error fetching food listing:', error);
         toast.error('Failed to load food listing details');
@@ -196,27 +186,21 @@ const FoodListingDetails: React.FC = () => {
         {showReviewForm && foodListing && user && (
           <div className="mb-6">
             <ReviewForm
-              recipientId={user.role === 'donor' ? foodListing.user : undefined}
-              donorId={user.role === 'recipient' ? foodListing.user : undefined}
               foodListingId={foodListing._id}
               onReviewSubmitted={() => {
                 setShowReviewForm(false);
-                // Refresh reviews
-                if (id) {
-                  reviewService.getFoodListingReviews(id)
-                    .then(data => setReviews(data))
-                    .catch(err => console.error('Error refreshing reviews:', err));
-                }
               }}
             />
           </div>
         )}
 
         {/* Reviews Display */}
-        <ReviewDisplay 
-          reviews={reviews} 
-          title={user?.role === 'recipient' ? 'Donor Reviews' : 'Recipient Reviews'} 
-        />
+        {id && (
+          <ReviewDisplay 
+            foodDonationId={id}
+            title={user?.role === 'recipient' ? 'Donor Reviews' : 'Recipient Reviews'} 
+          />
+        )}
       </div>
     </div>
   );

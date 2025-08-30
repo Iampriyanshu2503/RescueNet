@@ -4,45 +4,39 @@ import { API_BASE_URL } from '../config/constants';
 interface CreateReviewRequest {
   rating: number;
   comment: string;
-  reviewerId: string;
-  revieweeId: string;
-  foodListingId: string;
-  reviewerRole: string;
-  revieweeRole: string;
 }
 
-interface Review {
+export interface Review {
   _id: string;
   rating: number;
   comment: string;
-  reviewerId: string;
-  revieweeId: string;
-  foodListingId: string;
-  reviewerRole: string;
-  revieweeRole: string;
+  user: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  };
   createdAt: string;
-  updatedAt: string;
 }
 
 const reviewService = {
-  // Create a new review
-  create: async (reviewData: CreateReviewRequest): Promise<Review> => {
+  // Create a new review for a food donation
+  createFoodDonationReview: async (foodDonationId: string, reviewData: CreateReviewRequest): Promise<Review> => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/reviews`, reviewData);
-      return response.data;
+      const response = await axios.post(`${API_BASE_URL}/food-donations/${foodDonationId}/reviews`, reviewData);
+      return response.data.review;
     } catch (error) {
       console.error('Error creating review:', error);
       throw error;
     }
   },
 
-  // Get reviews for a user (as donor or recipient)
-  getUserReviews: async (userId: string, role: string): Promise<Review[]> => {
+  // Get reviews for a specific food donation
+  getFoodDonationReviews: async (foodDonationId: string): Promise<Review[]> => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/reviews/user/${userId}?role=${role}`);
+      const response = await axios.get(`${API_BASE_URL}/food-donations/${foodDonationId}/reviews`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching user reviews:', error);
+      console.error('Error fetching food donation reviews:', error);
       throw error;
     }
   },

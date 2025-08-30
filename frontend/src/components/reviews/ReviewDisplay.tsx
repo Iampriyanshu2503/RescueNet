@@ -1,16 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, User, Calendar } from 'lucide-react';
-import { Review } from '../../services/reviewService';
+import { Review, reviewService } from '../../services/reviewService';
 
 interface ReviewDisplayProps {
-  reviews: Review[];
+  foodDonationId: string;
   title?: string;
 }
 
 const ReviewDisplay: React.FC<ReviewDisplayProps> = ({ 
-  reviews, 
+  foodDonationId, 
   title = 'Reviews' 
 }) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        const data = await reviewService.getFoodDonationReviews(foodDonationId);
+        setReviews(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+        setError('Failed to load reviews');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, [foodDonationId]);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-gray-500 text-sm">Loading reviews...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-gray-500 text-sm">{error}</p>
+      </div>
+    );
+  }
+
   if (!reviews || reviews.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
@@ -51,8 +91,8 @@ const ReviewDisplay: React.FC<ReviewDisplayProps> = ({
                 </div>
                 <div>
                   <div className="font-medium text-sm">
-                    {review.reviewerRole === 'donor' ? 'Donor' : 'Recipient'}
-                  </div>
+                  {review.user.name || 'Anonymous User'}
+                </div>
                   <div className="flex items-center mt-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star

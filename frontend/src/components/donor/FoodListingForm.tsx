@@ -138,6 +138,8 @@ export default function AddSurplusFood() {
             errors.location = 'Pickup location is required';
         } else if (!formData.location.coordinates) {
             errors.location = 'Please select a location with valid coordinates';
+        } else if (typeof formData.location.coordinates !== 'object') {
+            errors.location = 'Invalid location format';
         }
         
         return errors;
@@ -179,6 +181,21 @@ export default function AddSurplusFood() {
             const bestBefore = totalHours.toString();
 
             // Create payload without image first
+            // Ensure location data is properly formatted
+            let locationData = formData.location;
+            if (locationData && locationData.coordinates) {
+                // Make sure coordinates are in the correct format for the backend
+                if (typeof locationData.coordinates === 'object' && 
+                    'lat' in locationData.coordinates && 
+                    'lng' in locationData.coordinates) {
+                    // The backend expects coordinates as [number, number]
+                    locationData = {
+                        ...locationData,
+                        coordinates: [locationData.coordinates.lat, locationData.coordinates.lng]
+                    };
+                }
+            }
+            
             const payload: CreateFoodDonationRequest = {
                 foodType: formData.foodType,
                 servings: formData.servings,
@@ -186,8 +203,10 @@ export default function AddSurplusFood() {
                 bestBefore,
                 allergens: formData.allergens,
                 pickupInstructions,
-                location: formData.location,
+                location: locationData,
             };
+            
+            console.log('Location data being sent:', locationData);
             
             // Process image - resize if needed and validate
             let processedImage = null;
@@ -208,51 +227,66 @@ export default function AddSurplusFood() {
             }
 
             console.log('Submitting payload:', payload);
-            const response = await foodDonationService.create(payload);
-            console.log('Submission response:', response);
-
-            // Reset form after success
-            setFormData({
-                foodType: '',
-                servings: '',
-                description: '',
-                bestBefore: '',
-                bestBeforeHours: '',
-                bestBeforeMinutes: '',
-                allergens: [],
-                pickupInstructions: '',
-                location: null
-            });
-            setSelectedImage(null);
-            setValidationErrors({});
-
-            showNotification.success('Food listing submitted successfully!');
-            navigate('/donor-dashboard');
-        } catch (error: any) {
-            console.error('Failed to create food donation', error);
-            let errorMessage = 'Failed to submit food listing. Please try again.';
-            let errorDetails = '';
             
-            if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
-                // Check for validation errors from backend
-                if (error.response.data.errors) {
-                    errorDetails = Object.keys(error.response.data.errors)
-                        .map(field => `${field}: ${error.response.data.errors[field]}`)
-                        .join(', ');
+            try {
+                const response = await foodDonationService.create(payload);
+                console.log('Submission response:', response);
+                
+                // Reset form after success
+                setFormData({
+                    foodType: '',
+                    servings: '',
+                    description: '',
+                    bestBefore: '',
+                    bestBeforeHours: '',
+                    bestBeforeMinutes: '',
+                    allergens: [],
+                    pickupInstructions: '',
+                    location: null
+                });
+                setSelectedImage(null);
+                setValidationErrors({});
+
+                showNotification.success('Food listing submitted successfully!');
+                navigate('/donor-dashboard');
+            } catch (error: any) {
+                console.error('Failed to create food donation', error);
+                let errorMessage = 'Failed to submit food listing. Please try again.';
+                let errorDetails = '';
+                
+                if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message;
+                    // Check for validation errors from backend
+                    if (error.response.data.errors) {
+                        errorDetails = Object.keys(error.response.data.errors)
+                            .map(field => `${field}: ${error.response.data.errors[field]}`)
+                            .join(', ');
+                    }
+                } else if (error.message && error.message.includes('Network Error')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else if (error.message) {
+                    errorMessage = error.message;
                 }
-            } else if (error.message && error.message.includes('Network Error')) {
-                errorMessage = 'Network error. Please check your connection and try again.';
-            } else if (error.message) {
-                errorMessage = error.message;
+                
+                showNotification.error(errorMessage);
+                if (errorDetails) {
+                    showNotification.error(`Validation errors: ${errorDetails}`);
+                }
+                
+                // If there's a location error, highlight it
+                if (error.response?.data?.errors?.location) {
+                    setValidationErrors(prev => ({
+                        ...prev,
+                        location: error.response.data.errors.location
+                    }));
+                }
+            } finally {
+                setIsSubmitting(false);
             }
-            
-            showNotification.error(errorMessage);
-            if (errorDetails) {
-                showNotification.error(`Validation errors: ${errorDetails}`);
-            }
-        } finally {
-            setIsSubmitting(false);
+
+        } catch (error: any) {
+            // Error handling is now in the try-catch block inside the try block
+            console.error('Unexpected error in form submission:', error);
         }
     };
 
@@ -445,6 +479,7 @@ export default function AddSurplusFood() {
                                                 <ul className="list-disc pl-5 space-y-1">
                                                     <li>Use the search box to find your exact address</li>
                                                     <li>Click "Use current location" for your present position</li>
+                                                    <li>Use "Manual Entry" to input coordinates directly</li>
                                                     <li>Ensure the selected location has valid coordinates</li>
                                                     <li>A precise location helps volunteers find your donation</li>
                                                 </ul>

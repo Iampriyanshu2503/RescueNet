@@ -35,12 +35,47 @@ const foodDonationSchema = mongoose.Schema(
       type: String,
       default: '',
     },
+    location: {
+      type: Object,
+      required: true,
+      properties: {
+        address: { type: String },
+        coordinates: {
+          lat: { type: Number },
+          lng: { type: Number }
+        },
+        type: { type: String }
+      }
+    },
     status: {
       type: String,
       required: true,
       default: 'available',
       enum: ['available', 'reserved', 'completed', 'expired'],
     },
+    reviews: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true
+        },
+        rating: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 5
+        },
+        comment: {
+          type: String,
+          required: true
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
   },
   {
     timestamps: true,

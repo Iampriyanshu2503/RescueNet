@@ -2,17 +2,14 @@ import React, { useState } from 'react';
 import { Star, Send } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { showNotification } from '../../utils/notificationUtils';
+import { reviewService } from '../../services/reviewService';
 
 interface ReviewFormProps {
-  recipientId?: string;
-  donorId?: string;
   foodListingId: string;
   onReviewSubmitted?: () => void;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ 
-  recipientId, 
-  donorId, 
   foodListingId, 
   onReviewSubmitted 
 }) => {
@@ -24,7 +21,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
 
   // Determine if user is reviewing a donor or recipient
   const isReviewingDonor = user?.role === 'recipient';
-  const targetId = isReviewingDonor ? donorId : recipientId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,19 +36,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       // Create review payload
       const reviewData = {
         rating,
-        comment,
-        reviewerId: user?._id,
-        revieweeId: targetId,
-        foodListingId,
-        reviewerRole: user?.role,
-        revieweeRole: isReviewingDonor ? 'donor' : 'recipient'
+        comment
       };
       
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await reviewService.createReview(reviewData);
-      
-      // For now, simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to create a review
+      await reviewService.createFoodDonationReview(foodListingId, reviewData);
       
       showNotification.success('Review submitted successfully!');
       setRating(0);
