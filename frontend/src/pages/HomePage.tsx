@@ -1,612 +1,804 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { getDashboardRoute } from '../utils/helpers';
-import { 
-  ShoppingCart, 
-  Bell, 
-  Shield, 
-  BarChart3, 
-  Calendar, 
-  Users,
-  CheckCircle,
-  Leaf,
-  Clock,
-  Target,
-  TrendingUp,
-  Handshake,
-  UserPlus,
-  HeartHandshake
+import {
+  ShoppingCart, Bell, Shield, BarChart3, Calendar, Users,
+  CheckCircle, Leaf, Clock, Handshake, UserPlus, HeartHandshake,
+  ArrowRight, ChevronDown, Sparkles, Target, TrendingUp,
 } from 'lucide-react';
 
+/* ══════════════════════════════════════════
+   CANVAS PARTICLE FIELD
+══════════════════════════════════════════ */
+function ParticleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext('2d')!;
+    let raf: number;
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+
+    const onResize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
+    window.addEventListener('resize', onResize);
+
+    interface P { x: number; y: number; vx: number; vy: number; r: number; alpha: number; da: number; }
+    const particles: P[] = Array.from({ length: 80 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3, vy: -Math.random() * 0.4 - 0.1,
+      r: Math.random() * 2.5 + 0.5,
+      alpha: Math.random() * 0.5 + 0.1,
+      da: (Math.random() - 0.5) * 0.003,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.alpha += p.da;
+        if (p.alpha <= 0.05 || p.alpha >= 0.6) p.da *= -1;
+        if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+        if (p.x < -10) p.x = W + 10;
+        if (p.x > W + 10) p.x = -10;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(52,211,153,${p.alpha})`;
+        ctx.fill();
+      });
+
+      // draw connecting lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(52,211,153,${0.08 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); };
+  }, []);
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }} />;
+}
+
+/* ══════════════════════════════════════════
+   MAGNETIC BUTTON
+══════════════════════════════════════════ */
+function MagneticBtn({ children, onClick, style }: { children: React.ReactNode; onClick: () => void; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const handleMove = (e: React.MouseEvent) => {
+    const el = ref.current!;
+    const r = el.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2);
+    const dy = e.clientY - (r.top + r.height / 2);
+    el.style.transform = `translate(${dx * 0.25}px, ${dy * 0.25}px)`;
+  };
+  const handleLeave = () => { if (ref.current) ref.current.style.transform = 'translate(0,0)'; };
+  return (
+    <button ref={ref} onClick={onClick} onMouseMove={handleMove} onMouseLeave={handleLeave}
+      style={{ transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease', cursor: 'pointer', border: 'none', ...style }}>
+      {children}
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════
+   SCROLL REVEAL WRAPPER
+══════════════════════════════════════════ */
+function Reveal({ children, delay = 0, direction = 'up' }: { children: React.ReactNode; delay?: number; direction?: 'up' | 'left' | 'right' }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: 0.15 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  const from = direction === 'left' ? 'translateX(-40px)' : direction === 'right' ? 'translateX(40px)' : 'translateY(32px)';
+  return (
+    <div ref={ref} style={{
+      opacity: vis ? 1 : 0,
+      transform: vis ? 'translate(0)' : from,
+      transition: `opacity 0.75s ease ${delay}s, transform 0.75s cubic-bezier(0.23,1,0.32,1) ${delay}s`,
+    }}>{children}</div>
+  );
+}
+
+/* ══════════════════════════════════════════
+   ANIMATED COUNTER
+══════════════════════════════════════════ */
+function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [val, setVal] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const dur = 2200;
+        const tick = (now: number) => {
+          const p = Math.min((now - start) / dur, 1);
+          const ease = 1 - Math.pow(1 - p, 4);
+          setVal(Math.floor(ease * target));
+          if (p < 1) requestAnimationFrame(tick);
+          else setVal(target);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.4 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [target]);
+  const fmt = target >= 1_000_000
+    ? (val / 1_000_000).toFixed(1) + 'M'
+    : target >= 1_000
+    ? (val / 1_000).toFixed(0) + 'K'
+    : val.toString();
+  return <span ref={ref}>{fmt}{suffix}</span>;
+}
+
+/* ══════════════════════════════════════════
+   TILT CARD
+══════════════════════════════════════════ */
+function TiltCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const handleMove = (e: React.MouseEvent) => {
+    const el = ref.current!;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1.02)`;
+  };
+  const handleLeave = () => { if (ref.current) ref.current.style.transform = 'perspective(800px) rotateY(0) rotateX(0) scale(1)'; };
+  return (
+    <div ref={ref} onMouseMove={handleMove} onMouseLeave={handleLeave}
+      style={{ transition: 'transform 0.4s cubic-bezier(0.23,1,0.32,1)', ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════ */
 const HomePage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const [scrolled, setScrolled] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [activeFeature, setActiveFeature] = useState(0);
 
-  // Redirect authenticated users to their dashboard
   useEffect(() => {
-    if (isAuthenticated && user) {
-      const dashboardRoute = getDashboardRoute(user.role);
-      navigate(dashboardRoute);
-    }
+    if (isAuthenticated && user) navigate(getDashboardRoute(user.role));
   }, [isAuthenticated, user, navigate]);
 
-  const handleJoinPlatform = () => {
-    navigate('/login');
-  };
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
 
-  const handleStartDonating = () => {
-    navigate('/login');
-  };
+  useEffect(() => {
+    const fn = (e: MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
+    window.addEventListener('mousemove', fn);
+    return () => window.removeEventListener('mousemove', fn);
+  }, []);
 
-  const handleFindFood = () => {
-    navigate('/login');
-  };
+  // Auto-cycle feature highlight
+  useEffect(() => {
+    const id = setInterval(() => setActiveFeature(p => (p + 1) % 6), 2800);
+    return () => clearInterval(id);
+  }, []);
 
-  const handleBecomeVolunteer = () => {
-    navigate('/login');
-  };
+  const go = () => navigate('/register');
+  const goLogin = () => navigate('/login');
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
-  const handleLearnMore = () => {
-    navigate('/login');
-  };
+  const features = [
+    { icon: <ShoppingCart className="w-6 h-6" />, color: '#3b82f6', glow: '#3b82f680', title: 'Intuitive Listing', desc: 'Post surplus food with type, quantity, and pickup details in under 60 seconds.' },
+    { icon: <Bell className="w-6 h-6" />, color: '#10b981', glow: '#10b98180', title: 'Instant Alerts', desc: 'Real-time notifications ensure food reaches recipients before it expires.' },
+    { icon: <Shield className="w-6 h-6" />, color: '#8b5cf6', glow: '#8b5cf680', title: 'Safety First', desc: 'Allergen tagging, dietary flags, and compliance built into every listing.' },
+    { icon: <BarChart3 className="w-6 h-6" />, color: '#f59e0b', glow: '#f59e0b80', title: 'Impact Analytics', desc: 'Track meals saved, CO₂ reduced, and community reach with live metrics.' },
+    { icon: <Calendar className="w-6 h-6" />, color: '#ef4444', glow: '#ef444480', title: 'Event Integration', desc: 'Sync with campus calendars to redistribute food from large gatherings.' },
+    { icon: <Users className="w-6 h-6" />, color: '#06b6d4', glow: '#06b6d480', title: 'Community Tools', desc: 'Connect students, staff, and NGOs in a zero-waste ecosystem.' },
+  ];
 
-  const handleGetStarted = () => {
-    navigate('/login');
-  };
+  const steps = [
+    { icon: <ShoppingCart className="w-7 h-7 text-white" />, color: '#10b981', num: '01', title: 'List', desc: 'Post surplus with type, quantity, pickup window — done in seconds.' },
+    { icon: <Bell className="w-7 h-7 text-white" />, color: '#f59e0b', num: '02', title: 'Notify', desc: 'Recipients get instant push alerts and can claim food immediately.' },
+    { icon: <CheckCircle className="w-7 h-7 text-white" />, color: '#3b82f6', num: '03', title: 'Pickup', desc: 'Volunteers navigate to donors with step-by-step route guidance.' },
+    { icon: <BarChart3 className="w-7 h-7 text-white" />, color: '#8b5cf6', num: '04', title: 'Track', desc: 'Every rescue logged. Watch your cumulative impact grow in real time.' },
+  ];
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  };
+  const impactStats = [
+    { icon: <ShoppingCart className="w-6 h-6 text-white" />, val: 2500000, suffix: '+', label: 'Meals Saved', sub: 'from going to waste', color: '#10b981' },
+    { icon: <Leaf className="w-6 h-6 text-white" />, val: 1200, suffix: '+', label: 'Tons CO₂ Cut', sub: 'environmental impact', color: '#34d399' },
+    { icon: <Clock className="w-6 h-6 text-white" />, val: 500, suffix: 'M+', label: 'Litres Saved', sub: 'water conservation', color: '#6ee7b7' },
+    { icon: <Handshake className="w-6 h-6 text-white" />, val: 150, suffix: '+', label: 'Partners', sub: 'active community orgs', color: '#a7f3d0' },
+  ];
+
+  const actions = [
+    { icon: <HeartHandshake className="w-7 h-7 text-white" />, color: '#10b981', shadow: '#10b98155', title: 'Donate Food', desc: 'Share surplus and make every meal count.', cta: 'Start Donating' },
+    { icon: <ShoppingCart className="w-7 h-7 text-white" />, color: '#f59e0b', shadow: '#f59e0b55', title: 'Find Food', desc: 'Discover donations available near you.', cta: 'Find Food' },
+    { icon: <UserPlus className="w-7 h-7 text-white" />, color: '#3b82f6', shadow: '#3b82f655', title: 'Volunteer', desc: 'Deliver food and build direct community impact.', cta: 'Become a Carrier' },
+    { icon: <Handshake className="w-7 h-7 text-white" />, color: '#8b5cf6', shadow: '#8b5cf655', title: 'Partner', desc: 'Collaborate as an organisation or business.', cta: 'Learn More' },
+  ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F7F7F7' }}>
-      {/* Top Header Navigation */}
-      <header className="shadow-sm border-b border-gray-200 relative z-50" style={{ backgroundColor: '#F4FDF7' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="rounded-full p-2" style={{ backgroundColor: '#34A853' }}>
-                <Leaf className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Byte Banquet</span>
-            </div>
+    <div style={{ fontFamily: "'Syne', system-ui, sans-serif", background: '#060a06', color: '#fff', overflowX: 'hidden' }}>
 
-            {/* Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-6">
-              <button
-                onClick={() => scrollToSection('features')}
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
-              >
-                Features
-              </button>
-              <button
-                onClick={() => scrollToSection('how-it-works')}
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
-              >
-                How It Works
-              </button>
-              <button
-                onClick={() => scrollToSection('impact')}
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
-              >
-                Impact
-              </button>
-              <button
-                onClick={handleGetStarted}
-                className="text-white px-6 py-2 rounded-lg font-semibold transition-colors hover:opacity-90 ml-4"
-                style={{ backgroundColor: '#34A853' }}
-              >
-                Get Started
-              </button>
-            </nav>
+      {/* ── CUSTOM CURSOR GLOW ── */}
+      <div style={{
+        position: 'fixed', width: 400, height: 400, borderRadius: '50%', pointerEvents: 'none',
+        zIndex: 0, left: mousePos.x - 200, top: mousePos.y - 200,
+        background: 'radial-gradient(circle, rgba(16,185,129,0.07), transparent 65%)',
+        transition: 'left 0.15s ease, top 0.15s ease',
+      }} />
 
-            {/* Mobile Navigation */}
-            <div className="lg:hidden flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => scrollToSection('features')}
-                  className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
-                >
-                  Features
-                </button>
-                <button
-                  onClick={() => scrollToSection('impact')}
-                  className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
-                >
-                  Impact
-                </button>
-              </div>
-              <button
-                onClick={handleGetStarted}
-                className="text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors hover:opacity-90"
-                style={{ backgroundColor: '#34A853' }}
-              >
-                Join
-              </button>
-            </div>
+      {/* ── NAVBAR ── */}
+      <header style={{
+        position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 200, width: 'calc(100% - 48px)', maxWidth: 1100,
+        background: scrolled ? 'rgba(6,10,6,0.85)' : 'rgba(6,10,6,0.4)',
+        backdropFilter: 'blur(24px)',
+        border: `1px solid ${scrolled ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.06)'}`,
+        borderRadius: 16, padding: '0 24px', height: 60,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        transition: 'all 0.4s ease',
+        boxShadow: scrolled ? '0 8px 40px rgba(0,0,0,0.4)' : 'none',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 9,
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 16px rgba(16,185,129,0.5)',
+          }}>
+            <Leaf className="w-4 h-4 text-white" />
           </div>
+          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em' }}>
+            Byte Banquet
+          </span>
         </div>
+
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="hidden lg:flex">
+          {[['Features', 'features'], ['Process', 'how-it-works'], ['Impact', 'impact']].map(([l, id]) => (
+            <button key={id} onClick={() => scrollTo(id)} style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
+              padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500,
+              transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; e.currentTarget.style.background = 'none'; }}
+            >{l}</button>
+          ))}
+          <button onClick={goLogin} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', fontWeight: 500,
+            padding: '8px 14px', borderRadius: 8, transition: 'all 0.2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+          >Sign In</button>
+          <MagneticBtn onClick={go} style={{
+            marginLeft: 4, padding: '9px 20px', borderRadius: 10,
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            color: '#fff', fontWeight: 600, fontSize: '0.875rem',
+            boxShadow: '0 0 20px rgba(16,185,129,0.4)',
+          }}>
+            Get Started →
+          </MagneticBtn>
+        </nav>
+
+        <button className="lg:hidden" onClick={go} style={{
+          padding: '8px 16px', borderRadius: 8,
+          background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)',
+          color: '#34d399', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+        }}>Join</button>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 overflow-hidden">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: 'url("https://cdn.builder.io/api/v1/image/assets%2F274b8ab83d5a46f8a5dcbaca899f2ff9%2F599ad064c4c84df9b8d76231e3258791?format=webp&width=800")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        >
-          <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-        </div>
-        
+      {/* ══════════════════════════════════════════
+          HERO
+      ══════════════════════════════════════════ */}
+      <section style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {/* BG image */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url("https://cdn.builder.io/api/v1/image/assets%2F274b8ab83d5a46f8a5dcbaca899f2ff9%2F599ad064c4c84df9b8d76231e3258791?format=webp&width=800")',
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'brightness(0.35) saturate(0.8)',
+        }} />
 
-        {/* Hero Content */}
-        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl">
-          
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Byte Banquet
+        {/* Layered gradients */}
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(16,185,129,0.12), transparent)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, #060a06 100%)' }} />
+
+        {/* Particle canvas */}
+        <ParticleCanvas />
+
+        {/* Diagonal grid lines */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1, opacity: 0.04,
+          backgroundImage: 'linear-gradient(rgba(52,211,153,1) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }} />
+
+        {/* Hero content */}
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '0 24px', maxWidth: 900, margin: '0 auto', paddingTop: 80 }}>
+
+          {/* Animated badge */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'rgba(16,185,129,0.1)',
+            border: '1px solid rgba(16,185,129,0.25)',
+            borderRadius: 100, padding: '7px 18px', marginBottom: 32,
+            animation: 'fadeDown 0.8s ease both',
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', animation: 'blink 1.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#34d399', letterSpacing: '0.12em' }}>
+              SMART FOOD REDISTRIBUTION · LIVE NOW
+            </span>
+          </div>
+
+          {/* Giant headline */}
+          <h1 style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: 'clamp(3.5rem, 10vw, 7rem)',
+            fontWeight: 900, lineHeight: 0.95,
+            letterSpacing: '-0.04em', marginBottom: 12,
+            animation: 'fadeUp 0.8s ease 0.15s both',
+          }}>
+            <span style={{ display: 'block', color: '#fff' }}>Feed</span>
+            <span style={{
+              display: 'block',
+              background: 'linear-gradient(90deg, #10b981 0%, #34d399 40%, #6ee7b7 70%, #10b981 100%)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              animation: 'shimmer 3s linear infinite',
+            }}>People.</span>
           </h1>
-          
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            Join our mission to feed people, not bins.
-          </p>
-          
-          <p className="text-lg mb-10 text-gray-300 max-w-3xl mx-auto">
-            Revolutionizing campus food management through smart redistribution. Connect 
-            surplus food from cafeterias, retailers, and events with those who need it most.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button 
-              onClick={handleStartDonating}
-              className="text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:opacity-90"
-              style={{ backgroundColor: '#34A853' }}
-            >
-              🌱 START DONATING
-            </button>
-            <button 
-              onClick={handleFindFood}
-              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-900 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300"
-            >
-              🔍 FIND FOOD NEARBY
-            </button>
+
+          {/* Subtitle with crossing-out effect */}
+          <div style={{ animation: 'fadeUp 0.8s ease 0.25s both', marginBottom: 36 }}>
+            <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.35rem)', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
+              Connecting surplus food from cafeterias, retailers & events
+              <br />with the communities that need it —
+              <strong style={{ color: '#34d399', fontWeight: 700 }}> not the bin.</strong>
+            </p>
           </div>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold mb-2">15,000+</div>
-              <div className="text-gray-300 text-sm md:text-base">Meals Saved</div>
+
+          {/* CTA buttons */}
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', animation: 'fadeUp 0.8s ease 0.35s both', marginBottom: 72 }}>
+            <MagneticBtn onClick={go} style={{
+              padding: '16px 36px', borderRadius: 14,
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: '#fff', fontWeight: 700, fontSize: '1rem',
+              boxShadow: '0 0 40px rgba(16,185,129,0.5), 0 8px 24px rgba(0,0,0,0.3)',
+              display: 'flex', alignItems: 'center', gap: 10, letterSpacing: '0.01em',
+            }}>
+              🌱 Start Donating <ArrowRight className="w-4 h-4" />
+            </MagneticBtn>
+            <MagneticBtn onClick={go} style={{
+              padding: '16px 36px', borderRadius: 14,
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff', fontWeight: 600, fontSize: '1rem',
+              backdropFilter: 'blur(10px)',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              🔍 Find Food Nearby
+            </MagneticBtn>
+          </div>
+
+          {/* Floating stat pills */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap', animation: 'fadeUp 0.8s ease 0.45s both' }}>
+            {[['15K+', 'Meals Saved', '#10b981'], ['2,500', 'Active Users', '#f59e0b'], ['80%', 'Less Waste', '#3b82f6']].map(([n, l, c]) => (
+              <div key={l} style={{
+                padding: '10px 20px', borderRadius: 100,
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <span style={{ fontWeight: 800, fontSize: '1.1rem', color: c as string }}>{n}</span>
+                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll arrow */}
+        <button onClick={() => scrollTo('features')} style={{
+          position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: '50%', width: 44, height: 44,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
+          animation: 'bounce 2.5s ease-in-out infinite',
+          zIndex: 10,
+        }}>
+          <ChevronDown className="w-5 h-5" />
+        </button>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          FEATURES — bento grid layout
+      ══════════════════════════════════════════ */}
+      <section id="features" style={{ padding: '120px 24px', background: '#060a06', position: 'relative' }}>
+        {/* Section glow */}
+        <div style={{ position: 'absolute', top: '20%', left: '10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.05), transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 72 }}>
+              <div style={{
+                display: 'inline-block', fontSize: '0.72rem', fontWeight: 800,
+                letterSpacing: '0.18em', color: '#34d399', marginBottom: 16,
+                padding: '6px 16px', borderRadius: 100,
+                background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)',
+              }}>✦ PLATFORM FEATURES</div>
+              <h2 style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 'clamp(2.2rem, 5vw, 3.75rem)',
+                fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, color: '#fff',
+              }}>
+                Powerful tools for<br />
+                <em style={{ color: '#34d399', fontStyle: 'italic' }}>zero waste.</em>
+              </h2>
             </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold mb-2">2,500</div>
-              <div className="text-gray-300 text-sm md:text-base">Active Users</div>
+          </Reveal>
+
+          {/* Bento grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="features-grid">
+            {features.map((f, i) => (
+              <Reveal key={f.title} delay={i * 0.07}>
+                <TiltCard style={{ height: '100%' }}>
+                  <div
+                    onMouseEnter={() => setActiveFeature(i)}
+                    style={{
+                      background: activeFeature === i
+                        ? `linear-gradient(135deg, rgba(${hexToRgb(f.color)},0.12), rgba(${hexToRgb(f.color)},0.04))`
+                        : 'rgba(255,255,255,0.02)',
+                      border: `1px solid ${activeFeature === i ? f.color + '40' : 'rgba(255,255,255,0.05)'}`,
+                      borderRadius: 20, padding: '28px 24px',
+                      transition: 'all 0.4s ease', height: '100%',
+                      cursor: 'default',
+                      boxShadow: activeFeature === i ? `0 0 40px ${f.color}15` : 'none',
+                    }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 14, background: f.color,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', marginBottom: 18,
+                      boxShadow: activeFeature === i ? `0 8px 24px ${f.glow}` : `0 4px 12px ${f.color}40`,
+                      transform: activeFeature === i ? 'scale(1.1) rotate(-4deg)' : 'scale(1)',
+                      transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+                    }}>{f.icon}</div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff', marginBottom: 8 }}>{f.title}</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.75 }}>{f.desc}</p>
+                  </div>
+                </TiltCard>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          HOW IT WORKS — horizontal timeline
+      ══════════════════════════════════════════ */}
+      <section id="how-it-works" style={{ padding: '120px 24px', background: 'linear-gradient(180deg, #060a06 0%, #091409 100%)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', right: '-5%', top: '20%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.06), transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 80 }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.18em', color: '#34d399', marginBottom: 16, display: 'inline-block', padding: '6px 16px', borderRadius: 100, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }}>
+                ✦ THE PROCESS
+              </div>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1.05 }}>
+                Four steps.<br /><em style={{ color: '#34d399', fontStyle: 'italic' }}>Infinite impact.</em>
+              </h2>
             </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold mb-2">80%</div>
-              <div className="text-gray-300 text-sm md:text-base">Waste Reduced</div>
+          </Reveal>
+
+          {/* Timeline */}
+          <div style={{ position: 'relative' }}>
+            {/* Connecting line */}
+            <div style={{
+              position: 'absolute', top: 52, left: '12.5%', right: '12.5%', height: 1,
+              background: 'linear-gradient(90deg, transparent, #10b98140, #10b98140, transparent)',
+              zIndex: 0,
+            }} className="hidden lg:block" />
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 32, position: 'relative', zIndex: 1 }}>
+              {steps.map((s, i) => (
+                <Reveal key={s.title} delay={i * 0.12}>
+                  <TiltCard>
+                    <div style={{
+                      textAlign: 'center', padding: '0 16px',
+                    }}>
+                      {/* Icon circle with pulse ring */}
+                      <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28 }}>
+                        <div style={{
+                          position: 'absolute', inset: -8, borderRadius: '50%',
+                          border: `1px solid ${s.color}30`,
+                          animation: `pingRing 2s ease-in-out ${i * 0.5}s infinite`,
+                        }} />
+                        <div style={{
+                          width: 80, height: 80, borderRadius: '50%', background: s.color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: `0 0 30px ${s.color}60, 0 8px 24px ${s.color}40`,
+                        }}>{s.icon}</div>
+                        <div style={{
+                          position: 'absolute', top: -4, right: -4, width: 26, height: 26,
+                          borderRadius: '50%', background: '#060a06',
+                          border: `2px solid ${s.color}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.65rem', fontWeight: 800, color: s.color,
+                        }}>{s.num}</div>
+                      </div>
+                      <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: 12 }}>{s.title}</h3>
+                      <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.75 }}>{s.desc}</p>
+                    </div>
+                  </TiltCard>
+                </Reveal>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-16" style={{ backgroundColor: '#F4FDF7' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center text-white px-8 py-4 rounded-2xl text-lg font-bold mb-8 shadow-lg transform hover:scale-105 transition-all duration-300" style={{ backgroundColor: '#34A853' }}>
-              ✨ Key Features Designed for Impact
+      {/* ══════════════════════════════════════════
+          IMPACT — full-bleed emerald
+      ══════════════════════════════════════════ */}
+      <section id="impact" style={{ padding: '120px 24px', position: 'relative', overflow: 'hidden', background: '#030703' }}>
+        {/* Big text watermark */}
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+          fontSize: 'clamp(8rem, 20vw, 18rem)', fontWeight: 900, color: 'rgba(16,185,129,0.03)',
+          whiteSpace: 'nowrap', pointerEvents: 'none', userSelect: 'none',
+          fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1,
+        }}>IMPACT</div>
+
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 72 }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.18em', color: '#34d399', marginBottom: 16, display: 'inline-block', padding: '6px 16px', borderRadius: 100, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }}>
+                ✦ BY THE NUMBERS
+              </div>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1.05 }}>
+                Our collective<br /><em style={{ color: '#34d399', fontStyle: 'italic' }}>impact.</em>
+              </h2>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Powerful Tools for <span style={{ color: '#34A853' }}>Zero Waste</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our comprehensive platform provides everything you need to reduce food waste 
-              and build stronger communities through smart redistribution technology.
-            </p>
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
+            {impactStats.map((s, i) => (
+              <Reveal key={s.label} delay={i * 0.1}>
+                <TiltCard>
+                  <div style={{
+                    background: `linear-gradient(135deg, rgba(${hexToRgb(s.color)}, 0.1), rgba(${hexToRgb(s.color)}, 0.03))`,
+                    border: `1px solid ${s.color}30`,
+                    borderRadius: 24, padding: '36px 28px', textAlign: 'center',
+                    position: 'relative', overflow: 'hidden',
+                  }}>
+                    {/* Corner glow */}
+                    <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: s.color, opacity: 0.08, filter: 'blur(20px)' }} />
+                    <div style={{ width: 52, height: 52, borderRadius: 16, background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: `0 8px 24px ${s.color}50` }}>{s.icon}</div>
+                    <div style={{ fontSize: '2.75rem', fontWeight: 900, color: '#fff', lineHeight: 1, fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 8 }}>
+                      <Counter target={s.val} suffix={s.suffix} />
+                    </div>
+                    <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem', marginBottom: 4 }}>{s.label}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{s.sub}</div>
+                  </div>
+                </TiltCard>
+              </Reveal>
+            ))}
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: '#4285F4' }}>
-                <ShoppingCart className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Intuitive Listing Platform</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Easily post available surplus food with details on type, quantity, and pickup time for quick redistribution.
-              </p>
-            </div>
 
-            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#34A853' }}>
-                <Bell className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Instant Notifications</h3>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                Receive real-time alerts on new food listings or successful pickups, ensuring timely action and reduced waste.
+          <Reveal delay={0.3}>
+            <div style={{
+              marginTop: 28, background: 'rgba(16,185,129,0.06)',
+              border: '1px solid rgba(16,185,129,0.15)',
+              borderRadius: 24, padding: '40px 48px', textAlign: 'center',
+            }}>
+              <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginBottom: 12 }}>Every Action Counts</h3>
+              <p style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 520, margin: '0 auto', lineHeight: 1.85, fontSize: '0.975rem' }}>
+                These numbers represent real meals reaching real families, genuine environmental protection, and communities choosing to act together.
               </p>
             </div>
-
-            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#9C27B0' }}>
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Safety & Compliance</h3>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                Ensure food safety with our rating for allergens, dietary restrictions, and adherence to campus guidelines.
-              </p>
-            </div>
-
-            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#FFB300' }}>
-                <BarChart3 className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Impact Analytics</h3>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                Track your contribution with detailed metrics on food saved, environmental impact, and community impact.
-              </p>
-            </div>
-
-            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#F44336' }}>
-                <Calendar className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Event Integration</h3>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                Seamlessly integrate with campus calendars to manage food distribution for large gatherings.
-              </p>
-            </div>
-
-            <div className="group p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: '#00BCD4' }}>
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Community Tools</h3>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                Connect with fellow students, staff, and local NGOs, fostering a collaborative zero-waste ecosystem.
-              </p>
-            </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Process Section */}
-      <section id="how-it-works" className="py-16" style={{ backgroundColor: '#F9FAFB' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Simple Process, Maximum Impact
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our streamlined four-step process ensures that surplus food reaches those who 
-              need it most, while providing transparency and tracking for continuous improvement.
-            </p>
+      {/* ══════════════════════════════════════════
+          CTA SECTION
+      ══════════════════════════════════════════ */}
+      <section style={{ padding: '120px 24px', background: '#060a06', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', bottom: '10%', left: '5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.06), transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 72 }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.18em', color: '#34d399', marginBottom: 16, display: 'inline-block', padding: '6px 16px', borderRadius: 100, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }}>
+                ✦ JOIN THE MOVEMENT
+              </div>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1.05 }}>
+                Be part of<br /><em style={{ color: '#34d399', fontStyle: 'italic' }}>the change.</em>
+              </h2>
+            </div>
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20, marginBottom: 32 }}>
+            {actions.map((a, i) => (
+              <Reveal key={a.title} delay={i * 0.08}>
+                <TiltCard style={{ height: '100%' }}>
+                  <div style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    borderRadius: 24, padding: '32px 24px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+                    height: '100%', transition: 'all 0.3s ease',
+                  }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = a.color + '40';
+                      (e.currentTarget as HTMLDivElement).style.background = `rgba(${hexToRgb(a.color)},0.06)`;
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.05)';
+                      (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.02)';
+                    }}
+                  >
+                    <div style={{
+                      width: 64, height: 64, borderRadius: 20, background: a.color,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+                      boxShadow: `0 8px 28px ${a.shadow}`,
+                    }}>{a.icon}</div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', marginBottom: 10 }}>{a.title}</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.75, marginBottom: 24, flex: 1 }}>{a.desc}</p>
+                    <MagneticBtn onClick={go} style={{
+                      padding: '11px 24px', borderRadius: 10, width: '100%',
+                      background: a.color, color: '#fff', fontWeight: 700, fontSize: '0.85rem',
+                      boxShadow: `0 4px 16px ${a.shadow}`,
+                    }}>{a.cta}</MagneticBtn>
+                  </div>
+                </TiltCard>
+              </Reveal>
+            ))}
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="relative mb-12">
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#34A853' }}>
-                  <ShoppingCart className="w-10 h-10 text-white" />
-                </div>
-                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#34A853' }}>
-                  1
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">List</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Organizations and retailers easily list their excess food on our platform, including type, quantity, and pickup time.
-              </p>
-            </div>
 
-            <div className="text-center group">
-              <div className="relative mb-12">
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#FFB300' }}>
-                  <Bell className="w-10 h-10 text-white" />
-                </div>
-                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#FFB300' }}>
-                  2
-                </div>
+          {/* Final mega CTA */}
+          <Reveal delay={0.2}>
+            <div style={{
+              position: 'relative', overflow: 'hidden',
+              background: 'linear-gradient(135deg, #071a0f 0%, #0a2e1a 50%, #071a0f 100%)',
+              border: '1px solid rgba(16,185,129,0.2)',
+              borderRadius: 32, padding: '72px 48px', textAlign: 'center',
+            }}>
+              {/* Animated orb */}
+              <div style={{
+                position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)',
+                width: 500, height: 300, borderRadius: '50%',
+                background: 'radial-gradient(ellipse, rgba(16,185,129,0.2), transparent 70%)',
+                filter: 'blur(30px)', pointerEvents: 'none',
+              }} />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <p style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.18em', color: '#34d399', marginBottom: 20 }}>
+                  ✦ READY TO MAKE AN IMPACT?
+                </p>
+                <h3 style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                  fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 20,
+                }}>
+                  Join thousands rescuing<br />meals every day.
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 440, margin: '0 auto 40px', lineHeight: 1.8, fontSize: '1rem' }}>
+                  Every signup is a meal rescued. Every donation is a family fed. Start today.
+                </p>
+                <MagneticBtn onClick={go} style={{
+                  padding: '18px 48px', borderRadius: 14,
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: '#fff', fontWeight: 800, fontSize: '1.05rem',
+                  boxShadow: '0 0 50px rgba(16,185,129,0.5), 0 12px 32px rgba(0,0,0,0.4)',
+                  display: 'inline-flex', alignItems: 'center', gap: 12,
+                  letterSpacing: '0.01em',
+                }}>
+                  Get Started Today <Target className="w-5 h-5" />
+                </MagneticBtn>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Notify</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Interested students, staff, and NGOs get instant notifications about newly available food, maximizing reach.
-              </p>
             </div>
-
-            <div className="text-center group">
-              <div className="relative mb-12">
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#4285F4' }}>
-                  <CheckCircle className="w-10 h-10 text-white" />
-                </div>
-                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#4285F4' }}>
-                  3
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Pickup</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Food is picked up by recipients or volunteers, with real-time coordination by local NGOs.
-              </p>
-            </div>
-
-            <div className="text-center group">
-              <div className="relative mb-12">
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 shadow-lg group-hover:shadow-2xl group-hover:scale-105" style={{ backgroundColor: '#9C27B0' }}>
-                  <BarChart3 className="w-10 h-10 text-white" />
-                </div>
-                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg" style={{ backgroundColor: '#9C27B0' }}>
-                  4
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Track</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Every transaction is tracked for impact metrics, helping achieve zero-waste goals.
-              </p>
-            </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section className="py-12" style={{ backgroundColor: '#F4FDF7' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#34A853' }}>
-                  <Leaf className="w-6 h-6 text-white" />
+      {/* ── FOOTER ── */}
+      <footer style={{ background: '#030703', borderTop: '1px solid rgba(255,255,255,0.04)', padding: '72px 24px 32px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 56 }}>
+            <div style={{ gridColumn: 'span 2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(16,185,129,0.4)' }}>
+                  <Leaf className="w-4 h-4 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Vision</h3>
+                <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontSize: '1.2rem' }}>Byte Banquet</span>
               </div>
-              <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                A world where no meal is wasted and every person has access to
-                nutritious food, creating sustainable communities built on urgency and care.
+              <p style={{ color: 'rgba(255,255,255,0.3)', lineHeight: 1.85, maxWidth: 300, fontSize: '0.875rem', marginBottom: 24 }}>
+                Transforming campus food systems through smart redistribution technology. Feed people, not bins.
               </p>
-            </div>
-
-            <div>
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style={{ backgroundColor: '#4285F4' }}>
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">Community</h3>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {['📧', '📞'].map(icon => (
+                  <div key={icon} style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)', e.currentTarget.style.borderColor = 'rgba(52,211,153,0.3)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)', e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
+                  >{icon}</div>
+                ))}
               </div>
-              <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                Building stronger communities through shared purpose:
-                connecting food donors, recipients, and volunteers.
-              </p>
             </div>
+            {[
+              { title: 'Platform', links: ['Features', 'How It Works', 'Impact', 'Safety Guidelines'] },
+              { title: 'Community', links: ['Campus Partners', 'NGO Network', 'Success Stories', 'Resources'] },
+            ].map(col => (
+              <div key={col.title}>
+                <h4 style={{ fontWeight: 700, color: '#fff', marginBottom: 20, fontSize: '0.875rem', letterSpacing: '0.06em' }}>{col.title}</h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {col.links.map(l => (
+                    <li key={l}>
+                      <a href="#" style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.875rem', textDecoration: 'none', transition: 'color 0.2s' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#34d399')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                      >{l}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* Impact Section */}
-      <section id="impact" className="py-16 text-white" style={{ background: 'linear-gradient(to right, #34A853, #2E8B57)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Our Impact</h2>
-            <p className="text-xl text-green-100 max-w-3xl mx-auto">
-              Together, we're making a real difference in fighting food waste and supporting 
-              our community. Here's what we've achieved so far.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-3xl md:text-4xl font-bold mb-2">2.5M+</div>
-              <div className="text-green-100">Meals Saved</div>
-              <div className="text-sm text-green-200 mt-1">from waste</div>
-            </div>
-            
-            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Leaf className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-3xl md:text-4xl font-bold mb-2">1,200</div>
-              <div className="text-green-100">Tons CO2 Reduced</div>
-              <div className="text-sm text-green-200 mt-1">environmental impact</div>
-            </div>
-            
-            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-3xl md:text-4xl font-bold mb-2">500M+</div>
-              <div className="text-green-100">Liters Water Saved</div>
-              <div className="text-sm text-green-200 mt-1">water conservation</div>
-            </div>
-            
-            <div className="text-center bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Handshake className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-3xl md:text-4xl font-bold mb-2">150+</div>
-              <div className="text-green-100">Partner Organizations</div>
-              <div className="text-sm text-green-200 mt-1">active community partners</div>
-            </div>
-          </div>
-          
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 text-center">
-            <h3 className="text-2xl font-bold mb-4">Every Action Counts</h3>
-            <p className="text-green-100 max-w-2xl mx-auto">
-              These numbers represent real meals reaching real families, environmental protection, and 
-              communities coming together to create positive change.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16" style={{ backgroundColor: '#F4FDF7' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Be Part of the Change
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Every action, no matter how small, contributes to our mission. Choose how you'd 
-              like to make a difference today.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div className="text-center rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853' }}>
-                <HeartHandshake className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Donate Food</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Share your surplus food with those who need it most.
-              </p>
-              <button
-                onClick={handleStartDonating}
-                className="text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-md active:scale-95"
-                style={{ backgroundColor: '#34A853' }}
-              >
-                START DONATING
-              </button>
-            </div>
-
-            <div className="text-center rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#FFB300' }}>
-                <ShoppingCart className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Find Food</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Discover available food donations in your area.
-              </p>
-              <button
-                onClick={handleFindFood}
-                className="text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-md active:scale-95"
-                style={{ backgroundColor: '#FFB300' }}
-              >
-                FIND FOOD
-              </button>
-            </div>
-
-            <div className="text-center rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#4285F4' }}>
-                <UserPlus className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Volunteer</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Join our community of carriers and make direct impact.
-              </p>
-              <button
-                onClick={handleBecomeVolunteer}
-                className="text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-md active:scale-95"
-                style={{ backgroundColor: '#4285F4' }}
-              >
-                BECOME A CARRIER
-              </button>
-            </div>
-
-            <div className="text-center rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100" style={{ backgroundColor: '#FFFFFF' }}>
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#34A853' }}>
-                <Handshake className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Partner With Us</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Collaborate with us as an organization or business.
-              </p>
-              <button
-                onClick={handleLearnMore}
-                className="text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-md active:scale-95"
-                style={{ backgroundColor: '#34A853' }}
-              >
-                LEARN MORE
-              </button>
-            </div>
-          </div>
-          
-          <div className="rounded-3xl p-12 text-center text-white" style={{ background: 'linear-gradient(to right, #34A853, #2E8B57)' }}>
-            <h3 className="text-3xl md:text-4xl font-bold mb-6">Ready to Make an Impact?</h3>
-            <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of community members who are already rescuing meals and 
-              restoring dignity.
-            </p>
-            <button 
-              onClick={handleGetStarted}
-              className="bg-white hover:bg-gray-100 px-8 py-4 rounded-xl font-bold text-lg transition-colors inline-flex items-center"
-              style={{ color: '#34A853' }}
-            >
-              GET STARTED TODAY
-              <Target className="w-5 h-5 ml-2" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            <div className="col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="rounded-full p-2" style={{ backgroundColor: '#34A853' }}>
-                  <Leaf className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold">Byte Banquet</span>
-              </div>
-              <p className="text-gray-400 mb-6 max-w-md">
-                Join our mission to feed people, not bins. 
-                Transforming campus food systems through smart 
-                redistribution technology.
-              </p>
-              <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer">
-                  <span className="text-xl">📧</span>
-                </div>
-                <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer">
-                  <span className="text-xl">📞</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-6">Platform</h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Impact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Safety Guidelines</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-6">Community</h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Campus Partners</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">NGO Network</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Success Stories</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Resources</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© 2024 Byte Banquet. All rights reserved. | Feed People, Not Bins</p>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 28, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>© 2024 Byte Banquet. All rights reserved.</p>
+            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>Feed People, Not Bins 🌱</p>
           </div>
         </div>
       </footer>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        @keyframes fadeUp   { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes shimmer  { from { background-position: 200% center; } to { background-position: 0% center; } }
+        @keyframes blink    { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+        @keyframes bounce   { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(8px); } }
+        @keyframes pingRing { 0% { transform:scale(1); opacity:0.6; } 80%,100% { transform:scale(1.5); opacity:0; } }
+        .features-grid { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+        @media (max-width: 600px) { .features-grid { grid-template-columns: 1fr !important; } }
+        .hidden { display: none !important; }
+        @media (min-width: 1024px) { .hidden.lg\\:flex { display: flex !important; } .hidden.lg\\:block { display: block !important; } }
+      `}</style>
     </div>
   );
 };
+
+/* hex → "r,g,b" for rgba() */
+function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r},${g},${b}`;
+}
 
 export default HomePage;

@@ -1,397 +1,322 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Mail, Phone, MapPin, Heart, Eye, EyeOff, Building } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Heart, Eye, EyeOff, Building, CheckCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { registerUser } from '../../store/authSlice';
 
-
 type FormData = {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    password: string;
-    confirmPassword: string;
-    address: string;
-    organization: string;
+  firstName: string; lastName: string; email: string; phone: string;
+  password: string; confirmPassword: string; address: string; organization: string;
 };
-
-type FormErrors = {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    password?: string;
-    confirmPassword?: string;
-    address?: string;
-    organization?: string;
-    submit?: string;
-};
+type FormErrors = Partial<Record<keyof FormData | 'submit', string>>;
 
 const ORGANIZATION_OPTIONS = [
-    { value: '', label: 'Select organization type' },
-    { value: 'restaurant', label: 'Restaurant' },
-    { value: 'cafe', label: 'Cafe' },
-    { value: 'bakery', label: 'Bakery' },
-    { value: 'canteen', label: 'Canteen' },
-    { value: 'hotel', label: 'Hotel' },
-    { value: 'catering', label: 'Catering Service' },
-    { value: 'grocery', label: 'Grocery Store' },
-    { value: 'supermarket', label: 'Supermarket' },
-    { value: 'food_court', label: 'Food Court' },
-    { value: 'individual', label: 'Individual' },
-    { value: 'other', label: 'Other' }
+  { value: '', label: 'Select organization type' },
+  { value: 'restaurant', label: 'Restaurant' },
+  { value: 'cafe', label: 'Cafe' },
+  { value: 'bakery', label: 'Bakery' },
+  { value: 'canteen', label: 'Canteen' },
+  { value: 'hotel', label: 'Hotel' },
+  { value: 'catering', label: 'Catering Service' },
+  { value: 'grocery', label: 'Grocery Store' },
+  { value: 'supermarket', label: 'Supermarket' },
+  { value: 'food_court', label: 'Food Court' },
+  { value: 'individual', label: 'Individual' },
+  { value: 'other', label: 'Other' },
 ];
 
+const C = { primary: '#3b82f6', light: '#eff6ff', mid: '#bfdbfe', dark: '#1d4ed8', glow: 'rgba(59,130,246,0.2)' };
+
+/* ── shared input ── */
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: 6, letterSpacing: '0.04em' }}>
+        {label}
+      </label>
+      {children}
+      {error && (
+        <p style={{ fontSize: '0.72rem', color: '#ef4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span>⚠</span> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Input({ icon, error, ...props }: any) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      {icon && (
+        <span style={{
+          position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+          color: focused ? C.primary : '#9ca3af', transition: 'color 0.2s', pointerEvents: 'none',
+          display: 'flex',
+        }}>{icon}</span>
+      )}
+      <input
+        {...props}
+        onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
+        onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
+        style={{
+          width: '100%', padding: icon ? '12px 14px 12px 42px' : '12px 14px',
+          border: `1.5px solid ${error ? '#fca5a5' : focused ? C.primary : '#e5e7eb'}`,
+          borderRadius: 10, fontSize: '0.875rem', color: '#111827',
+          background: focused ? '#fafbff' : '#fff',
+          outline: 'none', transition: 'all 0.2s ease',
+          boxShadow: focused ? `0 0 0 3px ${C.glow}` : '0 1px 3px rgba(0,0,0,0.04)',
+          fontFamily: 'inherit',
+        }}
+      />
+    </div>
+  );
+}
+
+function SelectInput({ icon, error, children, ...props }: any) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      {icon && (
+        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focused ? C.primary : '#9ca3af', pointerEvents: 'none', display: 'flex' }}>
+          {icon}
+        </span>
+      )}
+      <select
+        {...props}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: '100%', padding: icon ? '12px 36px 12px 42px' : '12px 36px 12px 14px',
+          border: `1.5px solid ${focused ? C.primary : '#e5e7eb'}`,
+          borderRadius: 10, fontSize: '0.875rem', color: '#111827',
+          background: focused ? '#fafbff' : '#fff',
+          outline: 'none', transition: 'all 0.2s', appearance: 'none',
+          boxShadow: focused ? `0 0 0 3px ${C.glow}` : '0 1px 3px rgba(0,0,0,0.04)',
+          fontFamily: 'inherit', cursor: 'pointer',
+        }}
+      >{children}</select>
+      <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#9ca3af' }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+  );
+}
+
 export default function DonorRegisterForm() {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [errors, setErrors] = useState<FormErrors>({});
-    const [formData, setFormData] = useState<FormData>({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-        address: '',
-        organization: ''
-    });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [formData, setFormData] = useState<FormData>({
+    firstName: '', lastName: '', email: '', phone: '',
+    password: '', confirmPassword: '', address: '', organization: '',
+  });
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(p => ({ ...p, [name]: value }));
+    if (errors[name as keyof FormErrors]) setErrors(p => ({ ...p, [name]: '' }));
+  };
 
-        // Clear error when user starts typing
-        if (errors[name as keyof FormErrors]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
-        }
-    };
+  const validateForm = () => {
+    const e: FormErrors = {};
+    if (!formData.firstName) e.firstName = 'First name is required';
+    if (!formData.lastName) e.lastName = 'Last name is required';
+    if (!formData.email) e.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Enter a valid email';
+    if (!formData.phone) e.phone = 'Phone number is required';
+    if (!formData.password) e.password = 'Password is required';
+    else if (formData.password.length < 6) e.password = 'Minimum 6 characters';
+    if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Passwords do not match';
+    if (!formData.address) e.address = 'Address is required';
+    if (!formData.organization) e.organization = 'Organization type is required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-    const validateForm = (): boolean => {
-        const newErrors: FormErrors = {};
+  const handleSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setIsLoading(true); setErrors({});
+    try {
+      const result = await dispatch(registerUser({
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email, password: formData.password, role: 'donor' as const,
+        phone: formData.phone, address: formData.address, organization: formData.organization,
+      }) as any);
+      if (registerUser.fulfilled.match(result)) { alert('Registration successful! Please log in.'); navigate('/login'); }
+      else setErrors({ submit: result.payload || 'Registration failed. Please try again.' });
+    } catch { setErrors({ submit: 'Network error. Please check your connection.' }); }
+    finally { setIsLoading(false); }
+  };
 
-        if (!formData.firstName) newErrors.firstName = 'First name is required';
-        if (!formData.lastName) newErrors.lastName = 'Last name is required';
-        if (!formData.email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email';
-        }
-        if (!formData.phone) newErrors.phone = 'Phone number is required';
-        if (!formData.password) {
-            newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
-        }
-        if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
-        }
-        if (!formData.address) newErrors.address = 'Address is required';
-        if (!formData.organization) newErrors.organization = 'Organization type is required';
+  // Progress calculation
+  const filled = Object.values(formData).filter(v => v.length > 0).length;
+  const total = Object.keys(formData).length;
+  const progress = Math.round((filled / total) * 100);
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+  return (
+    <div style={{
+      minHeight: '100vh', background: 'linear-gradient(135deg, #eff6ff 0%, #f8fafc 60%, #ede9fe 100%)',
+      fontFamily: "'DM Sans', system-ui, sans-serif", position: 'relative', overflow: 'hidden',
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes spin   { to{transform:rotate(360deg)} }
+        * { box-sizing: border-box; }
+        textarea { font-family: inherit; }
+      `}</style>
 
-    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+      {/* Background blobs */}
+      <div style={{ position: 'fixed', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', bottom: -80, left: -80, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.08), transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', inset: 0, backgroundImage: 'radial-gradient(circle, #3b82f610 1px, transparent 1px)', backgroundSize: '28px 28px', pointerEvents: 'none', opacity: 0.6 }} />
 
-        if (!validateForm()) return;
+      {/* Back */}
 
-        setIsLoading(true);
-        setErrors({});
+      {/* Main */}
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '72px 20px 48px', animation: 'fadeUp 0.6s ease both' }}>
 
-        try {
-            // Prepare user data for registration
-            const userData = {
-                name: `${formData.firstName} ${formData.lastName}`,
-                email: formData.email,
-                password: formData.password,
-                role: 'donor' as const,
-                // Additional fields can be stored in user profile later
-                phone: formData.phone,
-                address: formData.address,
-                organization: formData.organization
-            };
+        {/* Card */}
+        <div style={{ background: '#fff', borderRadius: 24, boxShadow: '0 8px 40px rgba(59,130,246,0.1), 0 2px 12px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
 
-            console.log('Submitting registration data:', userData);
+          {/* Top accent bar */}
+          <div style={{ height: 4, background: `linear-gradient(90deg, ${C.primary}, ${C.dark})` }} />
 
-            // Use Redux action for registration
-            const result = await dispatch(registerUser(userData) as any);
-            
-            console.log('Registration result:', result);
-            
-            if (registerUser.fulfilled.match(result)) {
-                // Registration successful
-                console.log('Registration successful');
-                alert('Registration successful! Please log in.');
-                navigate('/login');
-            } else {
-                // Registration failed
-                const errorMessage = result.payload || 'Registration failed. Please try again.';
-                console.error('Registration failed:', errorMessage);
-                setErrors({ submit: errorMessage });
-            }
-        } catch (error: any) {
-            console.error('Registration error:', error);
-            setErrors({ submit: 'Network error. Please check your connection and try again.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+          <div style={{ padding: '36px 36px 40px' }}>
 
-    const handleBack = () => {
-        navigate(-1);
-    };
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px',
+                background: `linear-gradient(135deg, ${C.primary}, ${C.dark})`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: `0 8px 24px ${C.glow}`,
+                animation: 'float 3s ease-in-out infinite',
+              }}>
+                <Heart size={28} color="#fff" fill="#fff" />
+              </div>
+              <h1 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: '1.75rem', fontWeight: 700, color: '#111827', marginBottom: 6, letterSpacing: '-0.02em' }}>
+                Join as Donor
+              </h1>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Help share food with those in need</p>
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-            {/* Back Button */}
-            <button
-                onClick={handleBack}
-                className="fixed top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow z-10">
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </button>
-
-            {/* Main Container */}
-            <div className="max-w-md mx-auto pt-16 pb-8">
-                <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Heart className="w-8 h-8 text-white" />
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Join as Donor</h1>
-                        <p className="text-gray-600 text-sm">Help share food with those in need</p>
-                    </div>
-
-                    {/* Form */}
-                    <div className="space-y-4">
-                        {/* Name Fields */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    First Name *
-                                </label>
-                                <div className="relative">
-                                    <User className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        name="firstName"
-                                        value={formData.firstName}
-                                        onChange={handleInputChange}
-                                        className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                        placeholder="John"
-                                    />
-                                </div>
-                                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Last Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    value={formData.lastName}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="Doe"
-                                />
-                                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
-                            </div>
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Email Address *
-                            </label>
-                            <div className="relative">
-                                <Mail className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="john@example.com"
-                                />
-                            </div>
-                            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                        </div>
-
-                        {/* Phone */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Phone Number *
-                            </label>
-                            <div className="relative">
-                                <Phone className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="+1 (555) 123-4567"
-                                />
-                            </div>
-                            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-                        </div>
-
-                        {/* Password */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Password *
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                            </div>
-                            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Confirm Password *
-                            </label>
-                            <input
-                                type="password"
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                placeholder="••••••••"
-                            />
-                            {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-                        </div>
-
-                        {/* Address */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Address *
-                            </label>
-                            <div className="relative">
-                                <MapPin className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                <textarea
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleInputChange}
-                                    rows={2}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
-                                    placeholder="123 Main St, City, State 12345"
-                                />
-                            </div>
-                            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
-                        </div>
-
-                        {/* Organization Type (Now Mandatory) */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Organization Type *
-                            </label>
-                            <div className="relative">
-                                <Building className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <select
-                                    name="organization"
-                                    value={formData.organization}
-                                    onChange={handleInputChange}
-                                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white appearance-none"
-                                >
-                                    {ORGANIZATION_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                {/* Custom dropdown arrow */}
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
-                            {errors.organization && <p className="text-red-500 text-xs mt-1">{errors.organization}</p>}
-                        </div>
-
-                        {/* Error Message */}
-                        {errors.submit && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                <p className="text-red-600 text-sm font-medium">Registration Failed</p>
-                                <p className="text-red-500 text-xs mt-1">{errors.submit}</p>
-                                <p className="text-red-400 text-xs mt-2">
-                                    Please check your internet connection and try again. 
-                                    If the problem persists, contact support.
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Submit Button */}
-                        <button
-                            onClick={handleSubmit}
-                            disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-lg"
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center justify-center">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                    Creating Account...
-                                </div>
-                            ) : (
-                                'Create Donor Account'
-                            )}
-                        </button>
-
-                        {/* Loading Message */}
-                        {isLoading && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                <p className="text-blue-600 text-sm">
-                                    Please wait while we create your account...
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Login Link */}
-                        <div className="text-center pt-4">
-                            <p className="text-gray-600 text-sm">
-                                Already have an account?{' '}
-                                <button
-                                    type="button"
-                                    onClick={() => navigate('/login')}
-                                    className="text-blue-500 hover:text-blue-600 font-medium"
-                                >
-                                    Sign in here
-                                </button>
-                            </p>
-                        </div>
-                    </div>
+              {/* Progress bar */}
+              <div style={{ marginTop: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 600 }}>Profile completion</span>
+                  <span style={{ fontSize: '0.7rem', color: C.primary, fontWeight: 700 }}>{progress}%</span>
                 </div>
+                <div style={{ height: 5, background: '#f3f4f6', borderRadius: 99 }}>
+                  <div style={{ height: '100%', width: `${progress}%`, borderRadius: 99, background: `linear-gradient(90deg, ${C.primary}, ${C.dark})`, transition: 'width 0.4s ease' }} />
+                </div>
+              </div>
             </div>
+
+            {/* Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+              {/* Name row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="First Name *" error={errors.firstName}>
+                  <Input icon={<User size={15} />} type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="John" error={errors.firstName} />
+                </Field>
+                <Field label="Last Name *" error={errors.lastName}>
+                  <Input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Doe" error={errors.lastName} />
+                </Field>
+              </div>
+
+              <Field label="Email Address *" error={errors.email}>
+                <Input icon={<Mail size={15} />} type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="john@example.com" error={errors.email} />
+              </Field>
+
+              <Field label="Phone Number *" error={errors.phone}>
+                <Input icon={<Phone size={15} />} type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+1 (555) 123-4567" error={errors.phone} />
+              </Field>
+
+              {/* Password row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Password *" error={errors.password}>
+                  <div style={{ position: 'relative' }}>
+                    <Input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleInputChange} placeholder="••••••••" error={errors.password} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex' }}>
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </Field>
+                <Field label="Confirm Password *" error={errors.confirmPassword}>
+                  <Input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} placeholder="••••••••" error={errors.confirmPassword} />
+                </Field>
+              </div>
+
+              <Field label="Address *" error={errors.address}>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 14, top: 13, color: '#9ca3af', pointerEvents: 'none' }}><MapPin size={15} /></span>
+                  <textarea name="address" value={formData.address} onChange={handleInputChange} rows={2} placeholder="123 Main St, City, State 12345" style={{
+                    width: '100%', padding: '12px 14px 12px 42px',
+                    border: `1.5px solid ${errors.address ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 10,
+                    fontSize: '0.875rem', color: '#111827', outline: 'none', resize: 'none',
+                    fontFamily: 'inherit', transition: 'all 0.2s', background: '#fff',
+                  }}
+                    onFocus={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.glow}`; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = errors.address ? '#fca5a5' : '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                </div>
+              </Field>
+
+              <Field label="Organization Type *" error={errors.organization}>
+                <SelectInput icon={<Building size={15} />} name="organization" value={formData.organization} onChange={handleInputChange} error={errors.organization}>
+                  {ORGANIZATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </SelectInput>
+              </Field>
+
+              {/* Error */}
+              {errors.submit && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '12px 16px' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#dc2626', fontWeight: 600, marginBottom: 4 }}>Registration Failed</p>
+                  <p style={{ fontSize: '0.75rem', color: '#ef4444' }}>{errors.submit}</p>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button onClick={handleSubmit} disabled={isLoading} style={{
+                width: '100%', padding: '14px', borderRadius: 12, border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer',
+                background: isLoading ? '#93c5fd' : `linear-gradient(135deg, ${C.primary}, ${C.dark})`,
+                color: '#fff', fontWeight: 700, fontSize: '0.9rem', fontFamily: 'inherit',
+                boxShadow: isLoading ? 'none' : `0 4px 20px ${C.glow}`,
+                transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+                onMouseEnter={e => { if (!isLoading) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+              >
+                {isLoading ? (
+                  <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Creating Account...</>
+                ) : (
+                  <><CheckCircle size={16} /> Create Donor Account</>
+                )}
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '0.82rem', color: '#6b7280' }}>
+                Already have an account?{' '}
+                <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.primary, fontWeight: 700, fontFamily: 'inherit', fontSize: '0.82rem' }}>
+                  Sign in here
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
-    );
+
+        {/* Trust badges */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 20 }}>
+          {['🔒 Secure', '✦ Free Forever', '🌱 Zero Waste'].map(b => (
+            <span key={b} style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>{b}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

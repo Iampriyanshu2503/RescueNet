@@ -7,7 +7,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 import ReviewForm from '../components/reviews/ReviewForm';
 import ReviewDisplay from '../components/reviews/ReviewDisplay';
+import ReviewSummary from '../components/reviews/ReviewSummary';
 import { reviewService } from '../services/reviewService';
+import { Star, MessageCircle, ThumbsUp } from 'lucide-react';
 
 const FoodListingDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,8 @@ const FoodListingDetails: React.FC = () => {
   const [foodListing, setFoodListing] = useState<FoodDonation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showReviewForm, setShowReviewForm] = useState<boolean>(false);
+  const [reviewType, setReviewType] = useState<'donor' | 'recipient'>('donor');
+  const [reviewStats, setReviewStats] = useState<{total: number, average: number}>({total: 0, average: 0});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,6 +29,19 @@ const FoodListingDetails: React.FC = () => {
         // Fetch food listing details
         const data = await foodDonationService.getById(id);
         setFoodListing(data);
+        
+        // Calculate review stats if reviews exist
+        if (data.reviews && data.reviews.length > 0) {
+          const total = data.reviews.length;
+          const sum = data.reviews.reduce((acc, review) => acc + review.rating, 0);
+          const average = sum / total;
+          setReviewStats({ total, average });
+        }
+        
+        // Set review type based on user role
+        if (user) {
+          setReviewType(user.role === 'recipient' ? 'donor' : 'recipient');
+        }
       } catch (error) {
         console.error('Error fetching food listing:', error);
         toast.error('Failed to load food listing details');
@@ -34,7 +51,7 @@ const FoodListingDetails: React.FC = () => {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, user]);
 
   const handleReserve = async () => {
     try {
@@ -182,24 +199,133 @@ const FoodListingDetails: React.FC = () => {
 
       {/* Reviews Section */}
       <div className="mt-8">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+          <div className="p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Reviews & Ratings</h2>
+            
+            {/* Review Stats Summary */}
+            {foodListing.reviews && foodListing.reviews.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <ReviewSummary 
+                  reviews={foodListing.reviews} 
+                  reviewType="all" 
+                  className="bg-gray-50"
+                />
+                
+                <div className="bg-gray-50 rounded-lg p-4 flex flex-col justify-center">
+                  <div className="flex items-center mb-4">
+                    <MessageCircle className="w-5 h-5 text-blue-500 mr-2" />
+                    <span className="text-gray-700">Honest feedback builds our community</span>
+                  </div>
+                  <div className="flex items-center mb-4">
+                    <ThumbsUp className="w-5 h-5 text-green-500 mr-2" />
+                    <span className="text-gray-700">Quality donations get better ratings</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Star className="w-5 h-5 text-yellow-400 fill-current mr-2" />
+                    <span className="text-gray-700">Your reviews help others make decisions</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Review Actions */}
+            <div className="flex flex-wrap gap-4 mb-6">
+              {foodListing?.status === 'completed' && user && (
+                <button
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center"
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  {showReviewForm ? 'Cancel Review' : 'Write Review'}
+                </button>
+              )}
+              
+              {user && user.role === 'donor' && foodListing?.status === 'completed' && (
+                <button
+                  onClick={() => {
+                    setReviewType('recipient');
+                    setShowReviewForm(true);
+                  }}
+                  className={`px-4 py-2 ${reviewType === 'recipient' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-200 hover:bg-gray-300'} text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  Rate Recipient
+                </button>
+              )}
+              
+              {user && user.role === 'recipient' && foodListing?.status === 'completed' && (
+                <button
+                  onClick={() => {
+                    setReviewType('donor');
+                    setShowReviewForm(true);
+                  }}
+                  className={`px-4 py-2 ${reviewType === 'donor' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-200 hover:bg-gray-300'} text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  Rate Food & Donor
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        
         {/* Review Form */}
         {showReviewForm && foodListing && user && (
           <div className="mb-6">
             <ReviewForm
               foodListingId={foodListing._id}
+              reviewType={reviewType}
               onReviewSubmitted={() => {
                 setShowReviewForm(false);
+                // Refresh the food listing to get updated reviews
+                if (id) {
+                  foodDonationService.getById(id).then(data => {
+                    setFoodListing(data);
+                    if (data.reviews && data.reviews.length > 0) {
+                      const total = data.reviews.length;
+                      const sum = data.reviews.reduce((acc, review) => acc + review.rating, 0);
+                      const average = sum / total;
+                      setReviewStats({ total, average });
+                    }
+                  });
+                }
               }}
             />
           </div>
         )}
 
-        {/* Reviews Display */}
-        {id && (
-          <ReviewDisplay 
-            foodDonationId={id}
-            title={user?.role === 'recipient' ? 'Donor Reviews' : 'Recipient Reviews'} 
-          />
+        {/* Reviews Display with Tabs */}
+        {id && foodListing.reviews && foodListing.reviews.length > 0 && (
+          <div className="mb-6">
+            <div className="flex border-b mb-4">
+              <button
+                onClick={() => setReviewType('donor')}
+                className={`py-2 px-4 ${reviewType === 'donor' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+              >
+                Donor Reviews
+              </button>
+              <button
+                onClick={() => setReviewType('recipient')}
+                className={`py-2 px-4 ${reviewType === 'recipient' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+              >
+                Recipient Reviews
+              </button>
+            </div>
+            
+            {/* Show ReviewSummary for the selected type */}
+            <div className="mb-4">
+              <ReviewSummary 
+                reviews={foodListing.reviews} 
+                reviewType={reviewType} 
+              />
+            </div>
+            
+            {/* Show ReviewDisplay for the selected type */}
+            <ReviewDisplay 
+              foodDonationId={id}
+              reviewType={reviewType}
+              title={reviewType === 'donor' ? 'Donor Reviews' : 'Recipient Reviews'} 
+            />
+          </div>
         )}
       </div>
     </div>

@@ -227,6 +227,36 @@ class SocketServer {
     }
   }
 
+  // Notify when a new review is added
+  async notifyNewReview(userId, foodDonation, review) {
+    try {
+      const notification = {
+        id: Date.now().toString(),
+        type: 'new_review',
+        title: 'New Review Received ⭐',
+        message: `Someone reviewed your ${foodDonation.foodType} donation`,
+        data: {
+          foodDonationId: foodDonation._id,
+          foodType: foodDonation.foodType,
+          reviewId: review._id,
+          rating: review.rating,
+          reviewType: review.reviewType
+        },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const userSocket = this.connectedUsers.get(userId);
+      if (userSocket) {
+        userSocket.emit('new_review', notification);
+      }
+
+      console.log(`Sent new review notification to user ${userId}`);
+    } catch (error) {
+      console.error('Error sending new review notification:', error);
+    }
+  }
+
   // Send system notification
   sendSystemNotification(userId, title, message, data = {}) {
     const notification = {
@@ -247,9 +277,18 @@ class SocketServer {
 
   // Helper methods
   getLocationRoom(coordinates) {
-    const lat = Math.round(coordinates.lat * 100);
-    const lng = Math.round(coordinates.lng * 100);
-    return `location_${lat}_${lng}`;
+    let lat, lng;
+    if (Array.isArray(coordinates) && coordinates.length >= 2) {
+      // Assume [lat, lng]
+      lat = coordinates[0];
+      lng = coordinates[1];
+    } else if (coordinates && typeof coordinates === 'object') {
+      lat = coordinates.lat;
+      lng = coordinates.lng;
+    }
+    const latKey = Math.round(Number(lat) * 100);
+    const lngKey = Math.round(Number(lng) * 100);
+    return `location_${latKey}_${lngKey}`;
   }
 
   addUserToRoom(userId, roomName) {

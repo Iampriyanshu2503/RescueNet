@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Star, User, Calendar } from 'lucide-react';
-import { Review, reviewService } from '../../services/reviewService';
+import { Star, User, Calendar, Package } from 'lucide-react';
+import { Review } from '../../types/foodListing';
+import { reviewService } from '../../services/reviewService';
 
 interface ReviewDisplayProps {
   foodDonationId: string;
   title?: string;
+  reviewType?: 'donor' | 'recipient';
 }
 
 const ReviewDisplay: React.FC<ReviewDisplayProps> = ({ 
   foodDonationId, 
-  title = 'Reviews' 
+  title = 'Reviews',
+  reviewType
 }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -19,8 +22,9 @@ const ReviewDisplay: React.FC<ReviewDisplayProps> = ({
     const fetchReviews = async () => {
       try {
         setLoading(true);
-        const data = await reviewService.getFoodDonationReviews(foodDonationId);
-        setReviews(data);
+        // Get reviews with optional filter by type
+        const data = await reviewService.getFoodDonationReviews(foodDonationId, reviewType);
+        setReviews(Array.isArray(data.reviews) ? data.reviews : data);
         setError(null);
       } catch (err) {
         console.error('Error fetching reviews:', err);
@@ -31,7 +35,7 @@ const ReviewDisplay: React.FC<ReviewDisplayProps> = ({
     };
 
     fetchReviews();
-  }, [foodDonationId]);
+  }, [foodDonationId, reviewType]);
 
   if (loading) {
     return (

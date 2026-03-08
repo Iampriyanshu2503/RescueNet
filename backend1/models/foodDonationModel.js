@@ -1,87 +1,55 @@
 const mongoose = require('mongoose');
 
-const foodDonationSchema = mongoose.Schema(
+const reviewSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-    },
-    foodType: {
-      type: String,
-      required: true,
-    },
-    servings: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    bestBefore: {
-      type: String,
-      required: true,
-    },
-    allergens: {
-      type: [String],
-      default: [],
-    },
-    pickupInstructions: {
-      type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-      default: '',
-    },
-    location: {
-      type: Object,
-      required: true,
-      properties: {
-        address: { type: String },
-        coordinates: {
-          lat: { type: Number },
-          lng: { type: Number }
-        },
-        type: { type: String }
-      }
-    },
-    status: {
-      type: String,
-      required: true,
-      default: 'available',
-      enum: ['available', 'reserved', 'completed', 'expired'],
-    },
-    reviews: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-          required: true
-        },
-        rating: {
-          type: Number,
-          required: true,
-          min: 1,
-          max: 5
-        },
-        comment: {
-          type: String,
-          required: true
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now
-        }
-      }
-    ],
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    rating: { type: Number, min: 1, max: 5, required: true },
+    comment: { type: String, required: true },
+    reviewType: { type: String, enum: ['donor', 'recipient'], required: true }
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-const FoodDonation = mongoose.model('FoodDonation', foodDonationSchema);
+const coordinatesSchema = new mongoose.Schema(
+  {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
+  { _id: false }
+);
 
-module.exports = FoodDonation;
+const locationSchema = new mongoose.Schema(
+  {
+    address: { type: String },
+    coordinates: { type: coordinatesSchema }
+  },
+  { _id: false }
+);
+
+const foodDonationSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    donor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    foodType: { type: String, required: true },
+    servings: { type: Number, required: true, min: 1 },
+    description: { type: String, default: '' },
+    bestBefore: { type: Number },
+    allergens: { type: [String], default: [] },
+    pickupInstructions: { type: String, default: '' },
+    image: { type: String, default: '' },
+    location: { type: locationSchema },
+    status: {
+      type: String,
+      enum: ['available', 'requested', 'claimed', 'completed', 'expired', 'cancelled', 'removed'],
+      default: 'available'
+    },
+    expiresAt: { type: Date },
+    reviews: { type: [reviewSchema], default: [] },
+    averageRating: { type: Number, default: 0 }
+  },
+  { timestamps: true }
+);
+
+foodDonationSchema.index({ createdAt: -1 });
+
+module.exports = mongoose.model('FoodDonation', foodDonationSchema);

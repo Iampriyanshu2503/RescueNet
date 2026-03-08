@@ -13,8 +13,24 @@ export interface FoodDonation {
     address?: string;
     coordinates?: [number, number];
   };
+  reviews?: Review[];
+  averageRating?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Review {
+  _id: string;
+  user: {
+    _id: string;
+    name: string;
+    avatar?: string;
+    role?: string;
+  };
+  rating: number;
+  comment: string;
+  reviewType?: 'donor' | 'recipient';
+  createdAt: string;
 }
 
 export interface CreateFoodDonationRequest {

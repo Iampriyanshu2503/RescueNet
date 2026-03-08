@@ -65,7 +65,7 @@ const VolunteerDashboard = () => {
                     });
                 },
                 (error) => {
-                    console.error('Error getting location:', error);
+                    console.error('Error getting location:', { code: error.code, message: error.message });
                 }
             );
         }

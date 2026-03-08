@@ -55,7 +55,7 @@ export default function FoodListingsPage() {
                     });
                 },
                 (error) => {
-                    console.log('Error getting location:', error);
+                    console.log('Error getting location:', { code: error.code, message: error.message });
                     // Set default location (NYC)
                     setUserLocation({ lat: 40.7128, lng: -74.0060 });
                 }

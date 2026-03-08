@@ -183,12 +183,17 @@ const InteractiveMap = ({
           options={options}
         >
           {/* Food Listing Markers */}
-          {foodListings.map((listing) => {
+          {foodListings.map((listing, index) => {
             if (listing.location && listing.location.coordinates) {
+              // Normalize coordinates to { lat, lng }
+              const coords = Array.isArray(listing.location.coordinates)
+                ? { lat: Number(listing.location.coordinates[0]), lng: Number(listing.location.coordinates[1]) }
+                : listing.location.coordinates;
+              const key = listing._id || listing.id || `${listing.title || 'listing'}-${index}`;
               return (
                 <Marker
-                  key={listing._id}
-                  position={listing.location.coordinates}
+                  key={key}
+                  position={coords}
                   icon={{
                     url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="${listing.status === 'available' ? '%2310B981' : '%236B7280'}" stroke="white" stroke-width="3"/><text x="20" y="25" font-size="16" text-anchor="middle" fill="white">${listing.status === 'available' ? '🍽️' : '⏰'}</text></svg>`,
                     scaledSize: new window.google.maps.Size(40, 40),
@@ -220,7 +225,9 @@ const InteractiveMap = ({
           {/* Info Window for Selected Listing */}
           {selectedListing && (
             <InfoWindow
-              position={selectedListing.location.coordinates}
+              position={Array.isArray(selectedListing.location?.coordinates)
+                ? { lat: Number(selectedListing.location.coordinates[0]), lng: Number(selectedListing.location.coordinates[1]) }
+                : selectedListing.location?.coordinates}
               onCloseClick={() => setSelectedListing(null)}
             >
               <div className="p-2 max-w-xs">

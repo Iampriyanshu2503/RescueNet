@@ -40,7 +40,7 @@ const LocationPicker = ({
           });
         },
         (error) => {
-          console.log('Error getting location:', error);
+          console.log('Error getting location:', { code: error.code, message: error.message });
         }
       );
     }

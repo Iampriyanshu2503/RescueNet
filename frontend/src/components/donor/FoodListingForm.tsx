@@ -50,24 +50,16 @@ export default function AddSurplusFood() {
     ];
 
     const handleInputChange = (field: keyof FormData, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     const handleLocationSelect = (location: any) => {
-        setFormData(prev => ({
-            ...prev,
-            location: location
-        }));
-        
-        // Clear location validation error when a location is selected
+        setFormData(prev => ({ ...prev, location }));
         if (location && validationErrors.location) {
             setValidationErrors(prev => {
-                const newErrors = {...prev};
-                delete newErrors.location;
-                return newErrors;
+                const next = { ...prev };
+                delete next.location;
+                return next;
             });
         }
     };
@@ -94,11 +86,8 @@ export default function AddSurplusFood() {
         }
     };
 
-    const handleBack = () => {
-        navigate('/donor-dashboard');
-    };
+    const handleBack = () => navigate('/donor-dashboard');
 
-    // Get user's current location for context
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -109,30 +98,34 @@ export default function AddSurplusFood() {
                     });
                 },
                 (error) => {
-                    console.log('Error getting location:', error);
-                }
+                    const code = error.code;
+                    const human =
+                        code === 1 ? 'Location permission denied. Please allow location access.'
+                        : code === 2 ? 'Location unavailable. Check GPS or network.'
+                        : code === 3 ? 'Location request timed out. Try again.'
+                        : 'Unable to get location.';
+                    console.log('Error getting location:', { code, message: error.message });
+                    showNotification?.warning?.(human);
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
         }
     }, []);
 
     const validateForm = () => {
         const errors: {[key: string]: string} = {};
-        
-        if (!formData.foodType) {
+
+        if (!formData.foodType)
             errors.foodType = 'Food type is required';
-        }
-        
-        if (!formData.servings) {
+
+        if (!formData.servings)
             errors.servings = 'Number of servings is required';
-        }
-        
-        if (!formData.description) {
+
+        if (!formData.description)
             errors.description = 'Description is required';
-        }
-        
-        if (!formData.bestBeforeHours && !formData.bestBeforeMinutes) {
+
+        if (!formData.bestBeforeHours && !formData.bestBeforeMinutes)
             errors.bestBefore = 'Best before time is required';
-        }
 
         if (!formData.location) {
             errors.location = 'Pickup location is required';
@@ -141,21 +134,18 @@ export default function AddSurplusFood() {
         } else if (typeof formData.location.coordinates !== 'object') {
             errors.location = 'Invalid location format';
         }
-        
+
         return errors;
     };
 
     const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        
-        // Validate form
+
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
-            
-            // Create a specific error message listing missing fields
             const missingFields = Object.keys(errors).map(key => {
-                switch(key) {
+                switch (key) {
                     case 'foodType': return 'Food Type';
                     case 'servings': return 'Servings';
                     case 'description': return 'Description';
@@ -164,38 +154,32 @@ export default function AddSurplusFood() {
                     default: return key;
                 }
             }).join(', ');
-            
             showNotification.error(`Please fill in these required fields: ${missingFields}`);
             return;
         }
-        
+
         setIsSubmitting(true);
 
         try {
             const pickupInstructions = formData.pickupInstructions || 'Contact for pickup details';
 
-            // Format the bestBefore time
             const hours = parseInt(formData.bestBeforeHours) || 0;
             const minutes = parseInt(formData.bestBeforeMinutes) || 0;
-            const totalHours = hours + minutes / 60;
-            const bestBefore = totalHours.toString();
+            const bestBefore = (hours + minutes / 60).toString();
 
-            // Create payload without image first
-            // Ensure location data is properly formatted
             let locationData = formData.location;
-            if (locationData && locationData.coordinates) {
-                // Make sure coordinates are in the correct format for the backend
-                if (typeof locationData.coordinates === 'object' && 
-                    'lat' in locationData.coordinates && 
-                    'lng' in locationData.coordinates) {
-                    // The backend expects coordinates as [number, number]
-                    locationData = {
-                        ...locationData,
-                        coordinates: [locationData.coordinates.lat, locationData.coordinates.lng]
-                    };
-                }
+            if (
+                locationData?.coordinates &&
+                typeof locationData.coordinates === 'object' &&
+                'lat' in locationData.coordinates &&
+                'lng' in locationData.coordinates
+            ) {
+                locationData = {
+                    ...locationData,
+                    coordinates: [locationData.coordinates.lat, locationData.coordinates.lng]
+                };
             }
-            
+
             const payload: CreateFoodDonationRequest = {
                 foodType: formData.foodType,
                 servings: formData.servings,
@@ -205,88 +189,67 @@ export default function AddSurplusFood() {
                 pickupInstructions,
                 location: locationData,
             };
-            
-            console.log('Location data being sent:', locationData);
-            
-            // Process image - resize if needed and validate
-            let processedImage = null;
-            if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('data:image')) {
-                // Check if image is too large (over ~5MB when encoded)
-                if (selectedImage.length > 7000000) {
-                    // Image is too large, show warning but continue with submission
-                    console.warn('Image is too large, submitting without image');
+
+            let processedImage: string | null = null;
+            if (selectedImage?.startsWith('data:image')) {
+                if (selectedImage.length > 7_000_000) {
                     showNotification.warning('Image is too large and will not be included');
                 } else {
                     processedImage = selectedImage;
                 }
             }
-            
-            // Only add valid processed image to payload
-            if (processedImage) {
-                payload.image = processedImage;
-            }
+            if (processedImage) payload.image = processedImage;
 
-            console.log('Submitting payload:', payload);
-            
-            try {
-                const response = await foodDonationService.create(payload);
-                console.log('Submission response:', response);
-                
-                // Reset form after success
-                setFormData({
-                    foodType: '',
-                    servings: '',
-                    description: '',
-                    bestBefore: '',
-                    bestBeforeHours: '',
-                    bestBeforeMinutes: '',
-                    allergens: [],
-                    pickupInstructions: '',
-                    location: null
-                });
-                setSelectedImage(null);
-                setValidationErrors({});
+            const response = await foodDonationService.create(payload);
+            console.log('Submission response:', response);
 
-                showNotification.success('Food listing submitted successfully!');
-                navigate('/donor-dashboard');
-            } catch (error: any) {
-                console.error('Failed to create food donation', error);
-                let errorMessage = 'Failed to submit food listing. Please try again.';
-                let errorDetails = '';
-                
-                if (error.response?.data?.message) {
-                    errorMessage = error.response.data.message;
-                    // Check for validation errors from backend
-                    if (error.response.data.errors) {
-                        errorDetails = Object.keys(error.response.data.errors)
-                            .map(field => `${field}: ${error.response.data.errors[field]}`)
-                            .join(', ');
-                    }
-                } else if (error.message && error.message.includes('Network Error')) {
-                    errorMessage = 'Network error. Please check your connection and try again.';
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-                
-                showNotification.error(errorMessage);
-                if (errorDetails) {
-                    showNotification.error(`Validation errors: ${errorDetails}`);
-                }
-                
-                // If there's a location error, highlight it
-                if (error.response?.data?.errors?.location) {
-                    setValidationErrors(prev => ({
-                        ...prev,
-                        location: error.response.data.errors.location
-                    }));
-                }
-            } finally {
-                setIsSubmitting(false);
-            }
+            setFormData({
+                foodType: '',
+                servings: '',
+                description: '',
+                bestBefore: '',
+                bestBeforeHours: '',
+                bestBeforeMinutes: '',
+                allergens: [],
+                pickupInstructions: '',
+                location: null
+            });
+            setSelectedImage(null);
+            setValidationErrors({});
+
+            showNotification.success('Food listing submitted successfully!');
+            navigate('/donor-dashboard');
 
         } catch (error: any) {
-            // Error handling is now in the try-catch block inside the try block
-            console.error('Unexpected error in form submission:', error);
+            console.error('Failed to create food donation', error);
+
+            let errorMessage = 'Failed to submit food listing. Please try again.';
+            let errorDetails = '';
+
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+                if (error.response.data.errors) {
+                    errorDetails = Object.entries(error.response.data.errors)
+                        .map(([field, msg]) => `${field}: ${msg}`)
+                        .join(', ');
+                }
+            } else if (error.message?.includes('Network Error')) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            showNotification.error(errorMessage);
+            if (errorDetails) showNotification.error(`Validation errors: ${errorDetails}`);
+
+            if (error.response?.data?.errors?.location) {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    location: error.response.data.errors.location
+                }));
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -314,11 +277,11 @@ export default function AddSurplusFood() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <div className="p-8 space-y-8">
+
                         {/* Food Photo Section */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Food Photo</h3>
                             <p className="text-sm text-gray-600 mb-4">Add an appealing photo of your surplus food</p>
-
                             <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-gray-300 transition-colors">
                                 {selectedImage ? (
                                     <div className="relative">
@@ -354,8 +317,8 @@ export default function AddSurplusFood() {
                         {/* Food Details Section */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-6">Food Details</h3>
-
                             <div className="space-y-6">
+
                                 {/* Food Type */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -370,14 +333,14 @@ export default function AddSurplusFood() {
                                         <option value="main-course">Main Course</option>
                                         <option value="appetizer">Appetizer</option>
                                         <option value="dessert">Dessert</option>
-                                    {validationErrors.foodType && (
-                                        <p className="mt-1 text-sm text-red-500">{validationErrors.foodType}</p>
-                                    )}
                                         <option value="beverages">Beverages</option>
                                         <option value="snacks">Snacks</option>
                                         <option value="fruits">Fruits</option>
                                         <option value="vegetables">Vegetables</option>
                                     </select>
+                                    {validationErrors.foodType && (
+                                        <p className="mt-1 text-sm text-red-500">{validationErrors.foodType}</p>
+                                    )}
                                 </div>
 
                                 {/* Servings */}
@@ -431,9 +394,9 @@ export default function AddSurplusFood() {
                                                 placeholder="Hours"
                                                 value={formData.bestBeforeHours}
                                                 onChange={(e) => handleInputChange('bestBeforeHours', e.target.value)}
-                                                className={`w-full pl-12 pr-4 py-3 border ${validationErrors.bestBefore ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
+                                                className={`w-full pl-12 pr-10 py-3 border ${validationErrors.bestBefore ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">hrs</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">hrs</span>
                                         </div>
                                         <div className="relative flex-1">
                                             <input
@@ -443,15 +406,15 @@ export default function AddSurplusFood() {
                                                 placeholder="Minutes"
                                                 value={formData.bestBeforeMinutes}
                                                 onChange={(e) => handleInputChange('bestBeforeMinutes', e.target.value)}
-                                                className={`w-full px-4 py-3 border ${validationErrors.bestBefore ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
+                                                className={`w-full px-4 pr-14 py-3 border ${validationErrors.bestBefore ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50`}
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">mins</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">mins</span>
                                         </div>
                                     </div>
                                     {validationErrors.bestBefore ? (
                                         <p className="text-sm text-red-500 mt-1">{validationErrors.bestBefore}</p>
                                     ) : (
-                                        <p className="text-xs text-gray-500 mt-1">How many hours until the food should be consumed</p>
+                                        <p className="text-xs text-gray-500 mt-1">How many hours/minutes until the food should be consumed</p>
                                     )}
                                 </div>
 
@@ -460,10 +423,10 @@ export default function AddSurplusFood() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Pickup Location <span className="text-red-500">*</span>
                                     </label>
-                                                                         <div className="relative">
+                                    <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-sm text-gray-500">Select a precise location for food pickup</span>
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={() => setShowLocationHelp(!showLocationHelp)}
                                                 className="text-blue-500 hover:text-blue-700 flex items-center"
@@ -472,7 +435,7 @@ export default function AddSurplusFood() {
                                                 <span className="text-xs">Help</span>
                                             </button>
                                         </div>
-                                        
+
                                         {showLocationHelp && (
                                             <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-800">
                                                 <p className="font-medium mb-1">Location Selection Tips:</p>
@@ -485,21 +448,21 @@ export default function AddSurplusFood() {
                                                 </ul>
                                             </div>
                                         )}
-                                        
-                                        <LocationPicker 
-                                            onLocationSelect={handleLocationSelect} 
+
+                                        <LocationPicker
+                                            onLocationSelect={handleLocationSelect}
                                             required={true}
                                             showMap={true}
                                         />
-                                        
+
                                         {validationErrors.location && (
                                             <div className="mt-2 flex items-center space-x-2 text-red-600">
                                                 <AlertCircle className="w-4 h-4" />
                                                 <span className="text-sm">{validationErrors.location}</span>
                                             </div>
                                         )}
-                                        
-                                        {formData.location && formData.location.coordinates && (
+
+                                        {formData.location?.coordinates && (
                                             <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
                                                 <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                                                     <h3 className="text-sm font-medium text-gray-700">Location Preview</h3>
@@ -510,9 +473,7 @@ export default function AddSurplusFood() {
                                                             id: 'preview',
                                                             title: 'Pickup Location',
                                                             description: formData.description || 'Food donation pickup',
-                                                            location: {
-                                                                coordinates: formData.location.coordinates
-                                                            }
+                                                            location: { coordinates: formData.location.coordinates }
                                                         }]}
                                                         userLocation={userLocation}
                                                         height="100%"
@@ -523,6 +484,7 @@ export default function AddSurplusFood() {
                                         )}
                                     </div>
                                 </div>
+
                             </div>
                         </div>
 
@@ -558,6 +520,7 @@ export default function AddSurplusFood() {
                                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 resize-none"
                             />
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -574,7 +537,7 @@ export default function AddSurplusFood() {
                     </button>
                 </div>
             </div>
-            <div className="h-24"></div>
+            <div className="h-24" />
         </div>
     );
 }

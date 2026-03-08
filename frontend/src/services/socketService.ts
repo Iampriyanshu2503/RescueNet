@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 
 interface NotificationData {
   id: string;
-  type: 'new_donation' | 'donation_update' | 'request_update' | 'system';
+  type: 'new_donation' | 'donation_update' | 'request_update' | 'system' | 'new_review';
   title: string;
   message: string;
   data?: any;
@@ -88,6 +88,13 @@ class SocketService {
       this.handleSystemNotification(data);
       this.emit('notification_received', data);
     });
+
+    // Listen for new review notifications
+    this.socket.on('new_review', (data: NotificationData) => {
+      console.log('New review notification:', data);
+      this.handleNewReviewNotification(data);
+      this.emit('notification_received', data);
+    });
   }
 
   private handleNewDonationNotification(data: NotificationData) {
@@ -126,6 +133,16 @@ class SocketService {
       `ℹ️ ${data.title}\n${data.message}`,
       {
         duration: 4000,
+        position: 'top-right',
+      }
+    );
+  }
+
+  private handleNewReviewNotification(data: NotificationData) {
+    toast(
+      `⭐ ${data.title}\n${data.message}`,
+      {
+        duration: 5000,
         position: 'top-right',
       }
     );

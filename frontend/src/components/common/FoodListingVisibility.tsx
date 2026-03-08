@@ -114,21 +114,21 @@ const FoodListingVisibility: React.FC<FoodListingVisibilityProps> = ({ listing }
             View Details
           </button>
           
-          {user?.role === 'recipient' && listing.status === 'available' && !isListingExpired(listing) && (
-            <button
-              onClick={handleRequestFood}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center"
-            >
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Request Food
-            </button>
-          )}
-          
-          {user?.role === 'recipient' && listing.status === 'expired' && (
-            <div className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium flex items-center">
-              <AlertCircle className="w-4 h-4 mr-2" />
-              Expired
-            </div>
+          {user?.role === 'recipient' && (
+            isListingExpired(listing) || listing.status === 'expired' ? (
+              <div className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium flex items-center">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Expired
+              </div>
+            ) : listing.status === 'available' && (
+              <button
+                onClick={handleRequestFood}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center"
+              >
+                <ShoppingBag className="w-4 h-4 mr-2" />
+                Request Food
+              </button>
+            )
           )}
           
           {user?.role === 'donor' && user._id === listing.user && (
