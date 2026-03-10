@@ -160,7 +160,7 @@ export default function RegisterPage() {
               animation: 'blink 1.5s ease-in-out infinite',
             }} />
             <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#34A853', letterSpacing: '0.1em' }}>
-              BYTE BANQUET · JOIN THE MISSION
+              RESCUENET · JOIN THE MISSION
             </span>
           </div>
 

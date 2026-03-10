@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-    X,
-    TrendingUp,
-    TrendingDown,
-    Calendar,
-    Users,
-    Package,
-    Truck,
-    MapPin,
-    Clock,
-    BarChart3,
-    PieChart,
-    Target,
-    Award,
-    Heart
+    X, TrendingUp, TrendingDown, Calendar, Users, Package,
+    Truck, BarChart3, PieChart, Target, Award, Heart, Zap
 } from 'lucide-react';
+
+interface BreakdownItem  { category: string; count: number; percentage: number; }
+interface ChartDataPoint { label: string; value: number; trend?: number; }
+
+interface AnalyticsData {
+    title: string;
+    icon: React.ReactNode;
+    gradient: string;
+    shadowColor: string;
+    mainMetric: string;
+    mainLabel: string;
+    trend: string;
+    trendUp: boolean;
+    chartData: ChartDataPoint[];
+    insights: string[];
+    breakdown: BreakdownItem[];
+}
 
 interface DetailedAnalyticsModalProps {
     isOpen: boolean;
@@ -22,289 +27,345 @@ interface DetailedAnalyticsModalProps {
     analyticsType: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests' | null;
 }
 
-interface ChartDataPoint {
-    label: string;
-    value: number;
-    trend?: number;
+/* ─── Animated bar ─── */
+function AnimatedBar({ pct, gradient, delay = 0 }: { pct: number; gradient: string; delay?: number }) {
+    const [width, setWidth] = useState(0);
+    useEffect(() => {
+        const id = setTimeout(() => setWidth(pct), 80 + delay);
+        return () => clearTimeout(id);
+    }, [pct, delay]);
+    return (
+        <div style={{ flex: 1, height: 10, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${width}%`, background: gradient, borderRadius: 99, transition: 'width 0.8s cubic-bezier(0.4,0,0.2,1)' }} />
+        </div>
+    );
 }
 
-const DetailedAnalyticsModal: React.FC<DetailedAnalyticsModalProps> = ({
-    isOpen,
-    onClose,
-    analyticsType
-}) => {
-    if (!isOpen || !analyticsType) return null;
+/* ─── Animated counter ─── */
+function PopCounter({ to, suffix = '' }: { to: number; suffix?: string }) {
+    const [val, setVal] = useState(0);
+    useEffect(() => {
+        const t0 = Date.now();
+        const dur = 900;
+        const tick = () => {
+            const p = Math.min((Date.now() - t0) / dur, 1);
+            setVal(Math.round((1 - Math.pow(1 - p, 3)) * to));
+            if (p < 1) requestAnimationFrame(tick);
+        };
+        const id = setTimeout(() => requestAnimationFrame(tick), 150);
+        return () => clearTimeout(id);
+    }, [to]);
+    return <>{val >= 1000 ? val.toLocaleString() : val}{suffix}</>;
+}
 
-    const getAnalyticsData = () => {
-        switch (analyticsType) {
-            case 'donations':
-                return {
-                    title: 'Total Donations Analytics',
-                    icon: <Package className="w-6 h-6 text-blue-600" />,
-                    color: 'from-blue-500 to-blue-600',
-                    mainMetric: '156',
-                    mainLabel: 'Total Donations',
-                    trend: '+12%',
-                    trendDirection: 'up',
-                    chartData: [
-                        { label: 'Week 1', value: 38, trend: 15 },
-                        { label: 'Week 2', value: 42, trend: 10 },
-                        { label: 'Week 3', value: 35, trend: -5 },
-                        { label: 'Week 4', value: 41, trend: 8 }
-                    ],
-                    insights: [
-                        'Peak donation day: Tuesday (28% of weekly donations)',
-                        'Most popular food type: Fresh produce (45%)',
-                        'Average donation size: 15-20 servings',
-                        'Best performing location: Downtown Campus'
-                    ],
-                    breakdown: [
-                        { category: 'Fresh Produce', count: 70, percentage: 45 },
-                        { category: 'Prepared Meals', count: 46, percentage: 29 },
-                        { category: 'Baked Goods', count: 31, percentage: 20 },
-                        { category: 'Beverages', count: 9, percentage: 6 }
-                    ]
-                };
-            case 'people-served':
-                return {
-                    title: 'People Served Analytics',
-                    icon: <Users className="w-6 h-6 text-green-600" />,
-                    color: 'from-green-500 to-green-600',
-                    mainMetric: '2,340',
-                    mainLabel: 'People Served',
-                    trend: '+8%',
-                    trendDirection: 'up',
-                    chartData: [
-                        { label: 'Week 1', value: 580, trend: 12 },
-                        { label: 'Week 2', value: 620, trend: 8 },
-                        { label: 'Week 3', value: 540, trend: -3 },
-                        { label: 'Week 4', value: 600, trend: 15 }
-                    ],
-                    insights: [
-                        'Average meals per person: 2.3',
-                        'Return rate: 68% (people served multiple times)',
-                        'Peak serving time: 6-8 PM',
-                        'Most active pickup location: Student Center'
-                    ],
-                    breakdown: [
-                        { category: 'Students', count: 1404, percentage: 60 },
-                        { category: 'Families', count: 702, percentage: 30 },
-                        { category: 'Seniors', count: 234, percentage: 10 }
-                    ]
-                };
-            case 'active-listings':
-                return {
-                    title: 'Active Listings Analytics',
-                    icon: <Calendar className="w-6 h-6 text-orange-600" />,
-                    color: 'from-orange-500 to-orange-600',
-                    mainMetric: '8',
-                    mainLabel: 'Active Listings',
-                    trend: '+25%',
-                    trendDirection: 'up',
-                    chartData: [
-                        { label: 'Mon', value: 6, trend: 0 },
-                        { label: 'Tue', value: 8, trend: 33 },
-                        { label: 'Wed', value: 7, trend: -12 },
-                        { label: 'Thu', value: 9, trend: 28 }
-                    ],
-                    insights: [
-                        'Average listing duration: 4.2 hours',
-                        'Average views per listing: 15.3',
-                        'Success rate: 95% (picked up)',
-                        '2 listings expiring in next 4 hours'
-                    ],
-                    breakdown: [
-                        { category: 'Fresh Food', count: 5, percentage: 62 },
-                        { category: 'Prepared Meals', count: 2, percentage: 25 },
-                        { category: 'Event Surplus', count: 1, percentage: 13 }
-                    ]
-                };
-            case 'pickup-requests':
-                return {
-                    title: 'Pickup Requests Analytics',
-                    icon: <Truck className="w-6 h-6 text-purple-600" />,
-                    color: 'from-purple-500 to-purple-600',
-                    mainMetric: '23',
-                    mainLabel: 'Pickup Requests',
-                    trend: '+15%',
-                    trendDirection: 'up',
-                    chartData: [
-                        { label: 'Week 1', value: 5, trend: 25 },
-                        { label: 'Week 2', value: 7, trend: 40 },
-                        { label: 'Week 3', value: 6, trend: -14 },
-                        { label: 'Week 4', value: 5, trend: -16 }
-                    ],
-                    insights: [
-                        'Average response time: 1.2 hours',
-                        'Completion rate: 96%',
-                        'Peak request day: Friday',
-                        '5 new requests today'
-                    ],
-                    breakdown: [
-                        { category: 'Same Day', count: 15, percentage: 65 },
-                        { category: 'Next Day', count: 6, percentage: 26 },
-                        { category: 'Scheduled', count: 2, percentage: 9 }
-                    ]
-                };
-            default:
-                return null;
-        }
+/* ─── Data definitions ─── */
+function getAnalyticsData(type: string): AnalyticsData | null {
+    const configs: Record<string, AnalyticsData> = {
+        donations: {
+            title: 'Total Donations',
+            icon: <Package size={20} color="#fff" />,
+            gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+            shadowColor: '#3b82f6',
+            mainMetric: '156', mainLabel: 'Total Donations', trend: '+12%', trendUp: true,
+            chartData: [
+                { label: 'Week 1', value: 38, trend: 15 },
+                { label: 'Week 2', value: 42, trend: 10 },
+                { label: 'Week 3', value: 35, trend: -5 },
+                { label: 'Week 4', value: 41, trend: 8 },
+            ],
+            insights: [
+                'Peak day: Tuesday (28% of weekly donations)',
+                'Most popular type: Fresh produce (45%)',
+                'Average donation size: 15–20 servings',
+                'Best location: Downtown Campus',
+            ],
+            breakdown: [
+                { category: 'Fresh Produce',   count: 70, percentage: 45 },
+                { category: 'Prepared Meals',  count: 46, percentage: 29 },
+                { category: 'Baked Goods',     count: 31, percentage: 20 },
+                { category: 'Beverages',       count:  9, percentage:  6 },
+            ],
+        },
+        'people-served': {
+            title: 'People Served',
+            icon: <Users size={20} color="#fff" />,
+            gradient: 'linear-gradient(135deg,#22c55e,#15803d)',
+            shadowColor: '#22c55e',
+            mainMetric: '2,340', mainLabel: 'People Served', trend: '+8%', trendUp: true,
+            chartData: [
+                { label: 'Week 1', value: 580, trend: 12 },
+                { label: 'Week 2', value: 620, trend:  8 },
+                { label: 'Week 3', value: 540, trend: -3 },
+                { label: 'Week 4', value: 600, trend: 15 },
+            ],
+            insights: [
+                'Average meals per person: 2.3',
+                'Return rate: 68% (served multiple times)',
+                'Peak serving time: 6–8 PM',
+                'Most active pickup: Student Center',
+            ],
+            breakdown: [
+                { category: 'Students', count: 1404, percentage: 60 },
+                { category: 'Families', count:  702, percentage: 30 },
+                { category: 'Seniors',  count:  234, percentage: 10 },
+            ],
+        },
+        'active-listings': {
+            title: 'Active Listings',
+            icon: <Calendar size={20} color="#fff" />,
+            gradient: 'linear-gradient(135deg,#f97316,#c2410c)',
+            shadowColor: '#f97316',
+            mainMetric: '8', mainLabel: 'Active Listings', trend: '+25%', trendUp: true,
+            chartData: [
+                { label: 'Mon', value: 6, trend:   0 },
+                { label: 'Tue', value: 8, trend:  33 },
+                { label: 'Wed', value: 7, trend: -12 },
+                { label: 'Thu', value: 9, trend:  28 },
+            ],
+            insights: [
+                'Average listing duration: 4.2 hours',
+                'Average views per listing: 15.3',
+                'Success (pickup) rate: 95%',
+                '2 listings expiring in next 4 hours',
+            ],
+            breakdown: [
+                { category: 'Fresh Food',      count: 5, percentage: 62 },
+                { category: 'Prepared Meals',  count: 2, percentage: 25 },
+                { category: 'Event Surplus',   count: 1, percentage: 13 },
+            ],
+        },
+        'pickup-requests': {
+            title: 'Pickup Requests',
+            icon: <Truck size={20} color="#fff" />,
+            gradient: 'linear-gradient(135deg,#a855f7,#6d28d9)',
+            shadowColor: '#a855f7',
+            mainMetric: '23', mainLabel: 'Pickup Requests', trend: '+15%', trendUp: true,
+            chartData: [
+                { label: 'Week 1', value: 5, trend:  25 },
+                { label: 'Week 2', value: 7, trend:  40 },
+                { label: 'Week 3', value: 6, trend: -14 },
+                { label: 'Week 4', value: 5, trend: -16 },
+            ],
+            insights: [
+                'Average response time: 1.2 hours',
+                'Completion rate: 96%',
+                'Peak request day: Friday',
+                '5 new requests today',
+            ],
+            breakdown: [
+                { category: 'Same Day',   count: 15, percentage: 65 },
+                { category: 'Next Day',   count:  6, percentage: 26 },
+                { category: 'Scheduled', count:  2, percentage:  9 },
+            ],
+        },
+    };
+    return configs[type] ?? null;
+}
+
+/* ─── MAIN MODAL ─── */
+const DetailedAnalyticsModal: React.FC<DetailedAnalyticsModalProps> = ({ isOpen, onClose, analyticsType }) => {
+    const [visible, setVisible] = useState(false);
+    const overlayRef = useRef<HTMLDivElement>(null);
+
+    // Animate in
+    useEffect(() => {
+        if (isOpen) setTimeout(() => setVisible(true), 10);
+        else setVisible(false);
+    }, [isOpen]);
+
+    // Close on overlay click
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === overlayRef.current) onClose();
     };
 
-    const data = getAnalyticsData();
+    // Close on Escape
+    useEffect(() => {
+        if (!isOpen) return;
+        const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+    }, [isOpen, onClose]);
+
+    if (!isOpen || !analyticsType) return null;
+    const data = getAnalyticsData(analyticsType);
     if (!data) return null;
 
     const maxValue = Math.max(...data.chartData.map(d => d.value));
+    const BREAKDOWN_COLORS = [data.gradient, 'linear-gradient(135deg,#6366f1,#4338ca)', 'linear-gradient(135deg,#f97316,#c2410c)', 'linear-gradient(135deg,#94a3b8,#64748b)'];
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-                {/* Header */}
-                <div className={`bg-gradient-to-r ${data.color} p-6 text-white`}>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white/20 rounded-xl">
+        <div
+            ref={overlayRef}
+            onClick={handleOverlayClick}
+            style={{
+                position: 'fixed', inset: 0, zIndex: 60,
+                background: `rgba(15,23,42,${visible ? 0.55 : 0})`,
+                backdropFilter: visible ? 'blur(6px)' : 'blur(0)',
+                transition: 'background 0.3s ease, backdrop-filter 0.3s ease',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '16px',
+                fontFamily: "'DM Sans',system-ui,sans-serif",
+            }}
+        >
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
+                @keyframes modalIn  { from{opacity:0;transform:translateY(24px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+                @keyframes fadeRow  { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+                @keyframes dotPop   { from{transform:scale(0)} to{transform:scale(1)} }
+                * { box-sizing:border-box; }
+            `}</style>
+
+            <div style={{
+                width: '100%', maxWidth: 820,
+                maxHeight: 'min(92vh, 820px)',
+                display: 'flex', flexDirection: 'column',
+                background: '#fff', borderRadius: 24,
+                boxShadow: `0 32px 80px rgba(15,23,42,0.25), 0 8px 24px ${data.shadowColor}20`,
+                overflow: 'hidden',
+                opacity: visible ? 1 : 0,
+                transform: visible ? 'none' : 'translateY(20px) scale(0.97)',
+                transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+            }}>
+
+                {/* ── Gradient header ── */}
+                <div style={{ background: data.gradient, padding: '22px 28px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+                    {/* Decorative orb */}
+                    <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 42, height: 42, borderRadius: 13, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {data.icon}
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold">{data.title}</h2>
-                                <p className="text-white/80 text-sm">Detailed insights and trends</p>
+                                <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', fontFamily: "'Playfair Display',serif", letterSpacing: '-0.02em' }}>{data.title}</h2>
+                                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Detailed insights & trends</p>
                             </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                        <button onClick={onClose}
+                            style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.28)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
                         >
-                            <X className="w-5 h-5" />
+                            <X size={18} color="#fff" />
                         </button>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-120px)]">
-                    {/* Main Metrics */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                        <div className="col-span-1 md:col-span-2">
-                            <div className="bg-gray-50/80 rounded-2xl p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">Trend Analysis</h3>
-                                    <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                                        data.trendDirection === 'up' 
-                                            ? 'bg-green-100 text-green-700' 
-                                            : 'bg-red-100 text-red-700'
-                                    }`}>
-                                        {data.trendDirection === 'up' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                        {data.trend} vs last month
-                                    </div>
-                                </div>
-                                
-                                {/* Chart */}
-                                <div className="space-y-3">
-                                    {data.chartData.map((point, index) => (
-                                        <div key={index} className="flex items-center gap-4">
-                                            <div className="w-16 text-sm font-medium text-gray-600">
-                                                {point.label}
-                                            </div>
-                                            <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
-                                                <div 
-                                                    className={`h-full bg-gradient-to-r ${data.color} transition-all duration-1000 ease-out`}
-                                                    style={{ width: `${(point.value / maxValue) * 100}%` }}
-                                                />
-                                            </div>
-                                            <div className="w-16 text-sm font-semibold text-gray-900 text-right">
-                                                {point.value.toLocaleString()}
-                                            </div>
-                                            {point.trend !== undefined && (
-                                                <div className={`w-16 text-xs ${
-                                                    point.trend >= 0 ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                    {point.trend > 0 ? '+' : ''}{point.trend}%
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                {/* ── Scrollable body ── */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                    {/* Row 1: Trend chart + Hero metric */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 16 }}>
+
+                        {/* Chart */}
+                        <div style={{ background: '#f8fafc', borderRadius: 18, padding: '20px 22px', border: '1px solid #f1f5f9', animation: 'modalIn 0.4s ease 0.05s both' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                                <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Trend Analysis</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 99, background: data.trendUp ? '#dcfce7' : '#fef2f2', border: `1px solid ${data.trendUp ? '#bbf7d0' : '#fecaca'}` }}>
+                                    {data.trendUp ? <TrendingUp size={12} color="#16a34a" /> : <TrendingDown size={12} color="#dc2626" />}
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: data.trendUp ? '#16a34a' : '#dc2626' }}>{data.trend} vs last month</span>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="bg-gray-50/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
-                            <div className="w-20 h-20 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mb-4">
-                                <Target className="w-10 h-10 text-gray-600" />
-                            </div>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{data.mainMetric}</div>
-                            <div className="text-sm text-gray-600 mb-3">{data.mainLabel}</div>
-                            <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                                data.trendDirection === 'up' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-red-100 text-red-700'
-                            }`}>
-                                {data.trendDirection === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                {data.trend}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Breakdown */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div className="bg-gray-50/80 rounded-2xl p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <PieChart className="w-5 h-5 text-gray-600" />
-                                <h3 className="font-semibold text-gray-900">Breakdown</h3>
-                            </div>
-                            <div className="space-y-3">
-                                {data.breakdown.map((item, index) => (
-                                    <div key={index} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div 
-                                                className={`w-3 h-3 rounded-full bg-gradient-to-r ${data.color}`}
-                                                style={{ opacity: 1 - (index * 0.2) }}
-                                            />
-                                            <span className="text-sm font-medium text-gray-700">{item.category}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-semibold text-gray-900">{item.count}</span>
-                                            <span className="text-xs text-gray-500">({item.percentage}%)</span>
-                                        </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {data.chartData.map((pt, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, animation: `fadeRow 0.4s ease ${0.1 + i * 0.07}s both` }}>
+                                        <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748b', width: 46, flexShrink: 0 }}>{pt.label}</span>
+                                        <AnimatedBar pct={(pt.value / maxValue) * 100} gradient={data.gradient} delay={i * 60} />
+                                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a', width: 42, textAlign: 'right', flexShrink: 0 }}>
+                                            {pt.value.toLocaleString()}
+                                        </span>
+                                        {pt.trend !== undefined && (
+                                            <span style={{ fontSize: '0.68rem', fontWeight: 600, width: 38, textAlign: 'right', flexShrink: 0, color: pt.trend >= 0 ? '#16a34a' : '#dc2626' }}>
+                                                {pt.trend > 0 ? '+' : ''}{pt.trend}%
+                                            </span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-gray-50/80 rounded-2xl p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <BarChart3 className="w-5 h-5 text-gray-600" />
-                                <h3 className="font-semibold text-gray-900">Key Insights</h3>
+                        {/* Hero metric */}
+                        <div style={{ background: '#f8fafc', borderRadius: 18, padding: '20px 16px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', animation: 'modalIn 0.4s ease 0.1s both' }}>
+                            <div style={{ width: 56, height: 56, borderRadius: 18, background: data.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14, boxShadow: `0 6px 20px ${data.shadowColor}35` }}>
+                                <Target size={26} color="#fff" />
                             </div>
-                            <div className="space-y-3">
-                                {data.insights.map((insight, index) => (
-                                    <div key={index} className="flex items-start gap-3">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                                        <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', fontFamily: "'Playfair Display',serif", lineHeight: 1, marginBottom: 6 }}>
+                                {data.mainMetric}
+                            </div>
+                            <div style={{ fontSize: '0.76rem', color: '#64748b', marginBottom: 10 }}>{data.mainLabel}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 99, background: data.trendUp ? '#dcfce7' : '#fef2f2' }}>
+                                {data.trendUp ? <TrendingUp size={11} color="#16a34a" /> : <TrendingDown size={11} color="#dc2626" />}
+                                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: data.trendUp ? '#16a34a' : '#dc2626' }}>{data.trend}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 2: Breakdown + Insights */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+
+                        {/* Breakdown */}
+                        <div style={{ background: '#f8fafc', borderRadius: 18, padding: '20px 22px', border: '1px solid #f1f5f9', animation: 'modalIn 0.4s ease 0.18s both' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 16 }}>
+                                <div style={{ width: 28, height: 28, borderRadius: 8, background: data.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><PieChart size={13} color="#fff" /></div>
+                                <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Breakdown</h3>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {data.breakdown.map((item, i) => (
+                                    <div key={i} style={{ animation: `fadeRow 0.4s ease ${0.22 + i * 0.07}s both` }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                                <div style={{ width: 8, height: 8, borderRadius: 2, background: BREAKDOWN_COLORS[i] || data.gradient, animation: `dotPop 0.3s ease ${0.22 + i * 0.07}s both`, transform: 'scale(0)' }} />
+                                                <span style={{ fontSize: '0.78rem', fontWeight: 500, color: '#334155' }}>{item.category}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>{item.count.toLocaleString()}</span>
+                                                <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>({item.percentage}%)</span>
+                                            </div>
+                                        </div>
+                                        <AnimatedBar pct={item.percentage} gradient={BREAKDOWN_COLORS[i] || data.gradient} delay={i * 80} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Insights */}
+                        <div style={{ background: '#f8fafc', borderRadius: 18, padding: '20px 22px', border: '1px solid #f1f5f9', animation: 'modalIn 0.4s ease 0.24s both' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 16 }}>
+                                <div style={{ width: 28, height: 28, borderRadius: 8, background: data.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BarChart3 size={13} color="#fff" /></div>
+                                <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Key Insights</h3>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                {data.insights.map((insight, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, animation: `fadeRow 0.4s ease ${0.28 + i * 0.07}s both` }}>
+                                        <div style={{ width: 20, height: 20, borderRadius: 6, background: data.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                                            <Zap size={10} color="#fff" />
+                                        </div>
+                                        <p style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>{insight}</p>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Impact Summary */}
-                    <div className="bg-gradient-to-r from-blue-50/80 to-purple-50/80 rounded-2xl p-6 border border-blue-200/50">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Heart className="w-5 h-5 text-blue-600" />
-                            <h3 className="font-semibold text-gray-900">Impact Summary</h3>
+                    {/* Row 3: Impact summary */}
+                    <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#eff6ff)', borderRadius: 18, padding: '20px 24px', border: '1px solid #bbf7d0', animation: 'modalIn 0.4s ease 0.32s both' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 16 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#22c55e,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={13} color="#fff" /></div>
+                            <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Impact Summary</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600 mb-1">98%</div>
-                                <div className="text-sm text-gray-600">Success Rate</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600 mb-1">4.8★</div>
-                                <div className="text-sm text-gray-600">Average Rating</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-purple-600 mb-1">2.1h</div>
-                                <div className="text-sm text-gray-600">Avg Response Time</div>
-                            </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+                            {[
+                                { value: 98, suffix: '%', label: 'Success Rate',    color: '#1d4ed8' },
+                                { value: 48, suffix: '★', label: 'Avg Rating (÷10)', color: '#16a34a' },
+                                { value: 21, suffix: 'h', label: 'Avg Response (÷10)', color: '#7c3aed' },
+                            ].map(({ value, suffix, label, color }, i) => (
+                                <div key={label} style={{ textAlign: 'center', background: '#fff', borderRadius: 14, padding: '14px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', animation: `modalIn 0.4s ease ${0.36 + i * 0.07}s both` }}>
+                                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color, fontFamily: "'Playfair Display',serif", lineHeight: 1, marginBottom: 4 }}>
+                                        <PopCounter to={value} suffix={suffix} />
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{label}</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>

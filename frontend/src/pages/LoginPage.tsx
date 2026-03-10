@@ -273,7 +273,7 @@ export default function FoodBanquetLogin() {
             <div style={{ width:48, height:48, borderRadius:16, background:'linear-gradient(135deg,#34A853,#059669)', display:'flex', alignItems:'center', justifyContent:'center', animation:'pulse 2.5s ease-in-out infinite, float 4s ease-in-out infinite', boxShadow:'0 4px 20px rgba(52,168,83,0.5)' }}>
               <Leaf size={23} color="#fff" />
             </div>
-            <span style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.5rem', color:'#fff', letterSpacing:'-0.01em' }}>Byte Banquet</span>
+            <span style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.5rem', color:'#fff', letterSpacing:'-0.01em' }}>RescueNet</span>
           </div>
 
           {/* Typewriter headline */}
@@ -338,7 +338,7 @@ export default function FoodBanquetLogin() {
             <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#34A853,#059669)', display:'flex', alignItems:'center', justifyContent:'center', animation:'pulse 2.5s ease-in-out infinite' }}>
               <Leaf size={18} color="#fff" />
             </div>
-            <span style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.2rem', color:'#065f46' }}>Byte Banquet</span>
+            <span style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.2rem', color:'#065f46' }}>RescueNet</span>
           </div>
 
           {/* Heading */}

@@ -2,17 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { foodDonationService } from '../../services/foodDonationService';
 import type { FoodDonation } from '../../types/foodListing';
-import { handleExpiredListings } from '../../utils/expirationUtils';
 import {
     Users, TrendingUp, Star, Recycle, Plus, Truck,
-    Eye, MessageSquare, MoreVertical, Clock, Bell,
-    Settings, Package, Calendar, CheckCircle, Info,
-    BarChart3, Sparkles, MapPin, Map, LogOut, ChevronRight,
+    Bell, Settings, Package, Calendar, CheckCircle, Info,
+    BarChart3, Sparkles, LogOut, ChevronRight,
     Zap, Leaf, ArrowUpRight, Activity
 } from 'lucide-react';
 import DetailedAnalyticsModal from './DetailedAnalyticsModal';
 import FoodListingVisibility from '../common/FoodListingVisibility';
-import InteractiveMap from '../maps/InteractiveMap';
 
 /* ════════════════════════════════════════════════
    ANIMATED COUNTER — eased count-up on viewport entry
@@ -289,8 +286,6 @@ export default function DonorDashboard() {
     const [currentTime,           setCurrentTime]           = useState(new Date());
     const [isAnalyticsModalOpen,  setIsAnalyticsModalOpen]  = useState(false);
     const [selectedAnalyticsType, setSelectedAnalyticsType] = useState<'donations' | 'people-served' | 'active-listings' | 'pickup-requests' | null>(null);
-    const [userLocation,          setUserLocation]          = useState<{ lat: number; lng: number } | null>(null);
-    const [viewMode,              setViewMode]              = useState<'list' | 'map'>('list');
     const [myListings,            setMyListings]            = useState<FoodDonation[]>([]);
     const [headerScrolled,        setHeaderScrolled]        = useState(false);
     const navigate = useNavigate();
@@ -310,13 +305,6 @@ export default function DonorDashboard() {
     useEffect(() => {
         foodDonationService.getMyDonations().then(setMyListings).catch(console.error);
     }, []);
-    useEffect(() => {
-        navigator.geolocation?.getCurrentPosition(
-            p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }),
-            e => console.error('Location error:', e)
-        );
-    }, []);
-
     // Handlers (all original logic preserved)
     const handleAddSurplusFood      = () => navigate('/add-surplus-food');
     const handleRequestWastePickup  = () => navigate('/waste-to-energy');
@@ -524,56 +512,31 @@ export default function DonorDashboard() {
                         </div>
                     </div>
 
-                    {/* ─ Listings + Map ─ */}
+                    {/* ─ Listings ─ */}
                     <div style={{ background: '#fff', borderRadius: 22, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 14px rgba(0,0,0,0.04)', animation: 'cardEnter 0.55s ease 0.28s both', opacity: 0 }}>
-                        {/* Header with tab toggle */}
-                        <div style={{ padding: '18px 22px 0', borderBottom: '1px solid #f8fafc' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Package size={15} color="#3b82f6" />
-                                    <h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Your Current Listings</h2>
-                                    {myListings.length > 0 && (
-                                        <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#3b82f6', background: '#eff6ff', borderRadius: 99, padding: '2px 8px', animation: 'popIn 0.3s ease both' }}>
-                                            {myListings.length}
-                                        </span>
-                                    )}
-                                </div>
-                                {/* List / Map toggle */}
-                                <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: 10, padding: 3, gap: 2 }}>
-                                    {(['list', 'map'] as const).map(m => (
-                                        <button key={m} onClick={() => setViewMode(m)}
-                                            style={{ padding: '5px 13px', borderRadius: 8, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.73rem', fontWeight: 600, transition: 'all 0.22s', background: viewMode === m ? '#fff' : 'transparent', color: viewMode === m ? '#0f172a' : '#64748b', boxShadow: viewMode === m ? '0 1px 6px rgba(0,0,0,0.08)' : 'none' }}>
-                                            {m === 'list' ? 'List View' : 'Map View'}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                        <div style={{ padding: '18px 22px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Package size={15} color="#3b82f6" />
+                            <h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Your Current Listings</h2>
+                            {myListings.length > 0 && (
+                                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#3b82f6', background: '#eff6ff', borderRadius: 99, padding: '2px 8px' }}>
+                                    {myListings.length}
+                                </span>
+                            )}
                         </div>
-
                         <div style={{ padding: '20px 22px', minHeight: 300 }}>
-                            {viewMode === 'list' ? (
-                                myListings.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-                                        <div style={{ width: 54, height: 54, borderRadius: 16, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                                            <Package size={24} color="#94a3b8" />
-                                        </div>
-                                        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: 14 }}>No active listings yet</p>
-                                        <button onClick={handleAddSurplusFood} style={{ padding: '10px 20px', borderRadius: 11, background: 'linear-gradient(135deg,#22c55e,#15803d)', border: 'none', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(34,197,94,0.35)' }}>
-                                            + Add First Donation
-                                        </button>
+                            {myListings.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                                    <div style={{ width: 54, height: 54, borderRadius: 16, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                                        <Package size={24} color="#94a3b8" />
                                     </div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        {myListings.map(item => <FoodListingVisibility key={item._id} listing={item} />)}
-                                    </div>
-                                )
+                                    <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: 14 }}>No active listings yet</p>
+                                    <button onClick={handleAddSurplusFood} style={{ padding: '10px 20px', borderRadius: 11, background: 'linear-gradient(135deg,#22c55e,#15803d)', border: 'none', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(34,197,94,0.35)' }}>
+                                        + Add First Donation
+                                    </button>
+                                </div>
                             ) : (
-                                <div>
-                                    <InteractiveMap foodListings={myListings} userLocation={userLocation} height="360px" showUserLocation={true} />
-                                    <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        <Info size={11} color="#94a3b8" />
-                                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Map shows all your active donation locations</span>
-                                    </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    {myListings.map(item => <FoodListingVisibility key={item._id} listing={item} />)}
                                 </div>
                             )}
                         </div>

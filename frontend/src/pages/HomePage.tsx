@@ -269,7 +269,7 @@ const HomePage = () => {
             <Leaf className="w-4 h-4 text-white" />
           </div>
           <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em' }}>
-            Byte Banquet
+            RescueNet
           </span>
         </div>
 
@@ -733,7 +733,7 @@ const HomePage = () => {
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(16,185,129,0.4)' }}>
                   <Leaf className="w-4 h-4 text-white" />
                 </div>
-                <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontSize: '1.2rem' }}>Byte Banquet</span>
+                <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontSize: '1.2rem' }}>RescueNet</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.3)', lineHeight: 1.85, maxWidth: 300, fontSize: '0.875rem', marginBottom: 24 }}>
                 Transforming campus food systems through smart redistribution technology. Feed people, not bins.
@@ -767,7 +767,7 @@ const HomePage = () => {
             ))}
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 28, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>© 2024 Byte Banquet. All rights reserved.</p>
+            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>© 2024 RescueNet. All rights reserved.</p>
             <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>Feed People, Not Bins 🌱</p>
           </div>
         </div>
