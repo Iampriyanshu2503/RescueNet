@@ -2,23 +2,22 @@
 
 <br/>
 
-<img src="frontend/public/logo192.png" width="110" alt="RescueNet" />
+<img src="frontend/public/logo192.png" width="120" alt="RescueNet Logo" />
 
 <br/><br/>
 
 ```
 ██████╗ ███████╗███████╗ ██████╗██╗   ██╗███████╗███╗   ██╗███████╗████████╗
 ██╔══██╗██╔════╝██╔════╝██╔════╝██║   ██║██╔════╝████╗  ██║██╔════╝╚══██╔══╝
-██████╔╝█████╗  ███████╗██║     ██║   ██║█████╗  ██╔██╗ ██║█████╗     ██║   
-██╔══██╗██╔══╝  ╚════██║██║     ██║   ██║██╔══╝  ██║╚██╗██║██╔══╝     ██║   
-██║  ██║███████╗███████║╚██████╗╚██████╔╝███████╗██║ ╚████║███████╗   ██║   
-╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
+██████╔╝█████╗  ███████╗██║     ██║   ██║█████╗  ██╔██╗ ██║█████╗     ██║
+██╔══██╗██╔══╝  ╚════██║██║     ██║   ██║██╔══╝  ██║╚██╗██║██╔══╝     ██║
+██║  ██║███████╗███████║╚██████╗╚██████╔╝███████╗██║ ╚████║███████╗   ██║
+╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚══════╝   ╚═╝
 ```
 
-### *Smart Surplus Food Redistribution System*
+<h3>🥗 Smart Surplus Food Redistribution System</h3>
 
-> **"One-third of all food produced is wasted — while 800 million people go hungry."**
-> RescueNet exists to close that gap.
+<p><em>We're not just building an app. We're fighting hunger — one rescued meal at a time.</em></p>
 
 <br/>
 
@@ -28,223 +27,204 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-4-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white)](https://redux-toolkit.js.org/)
+[![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 
 <br/>
 
-[![Status](https://img.shields.io/badge/Status-Active_Development-brightgreen?style=flat-square)]()
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)]()
-[![PRs](https://img.shields.io/badge/PRs-Welcome-blue?style=flat-square)]()
+[![Contributors](https://img.shields.io/github/contributors/yourusername/rescuenet?style=flat-square&color=brightgreen&label=Contributors)](https://github.com/yourusername/rescuenet/graphs/contributors)
+[![Issues](https://img.shields.io/github/issues/yourusername/rescuenet?style=flat-square&color=orange&label=Open%20Issues)](https://github.com/yourusername/rescuenet/issues)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome%20🎉-brightgreen?style=flat-square)](https://github.com/yourusername/rescuenet/pulls)
+[![Good First Issues](https://img.shields.io/github/issues/yourusername/rescuenet/good%20first%20issue?style=flat-square&color=7057ff&label=Good%20First%20Issues)](https://github.com/yourusername/rescuenet/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 <br/>
+
+**[🚀 Live Demo](#)** &nbsp;·&nbsp; **[🐛 Report Bug](https://github.com/yourusername/rescuenet/issues)** &nbsp;·&nbsp; **[✨ Request Feature](https://github.com/yourusername/rescuenet/issues)**
+
+<br/>
+
+</div>
 
 ---
 
-## 🌍 The Mission
+## 💡 Why RescueNet Exists
+
+> **1.3 billion tons** of food is wasted every year.
+> **828 million people** go to bed hungry every night.
+> These two facts should not coexist.
+
+RescueNet is an open-source platform that connects food donors — restaurants, bakeries, supermarkets, households — with volunteers and recipients in real time. Built with modern web tech, powered by community, and driven by purpose.
 
 ```
-        🍱 Donor               🚴 Volunteer              🏠 Recipient
-    lists surplus food   →   accepts & delivers   →   receives hot meal
-         in 30s                  in minutes               for free
+  🍱 Donor lists food          🚴 Volunteer picks up          🏠 Recipient gets fed
+  ─────────────────    →      ──────────────────────   →      ──────────────────────
+  30 seconds to post          Real-time notification           Hot meal. Free. Fast.
 ```
 
-**RescueNet** is a real-time food redistribution platform connecting restaurants, bakeries,
-and households with surplus food to local volunteers and people who need it most.
+**This is more than a side project. This is infrastructure for social good — and we need your help to scale it.**
 
 ---
 
-## ⚡ What Makes It Special
+## ✨ Features
 
-<br/>
+<table>
+<tr>
+<td width="50%">
 
-🔴 **LIVE** &nbsp;&nbsp; Real-time notifications via Socket.io — know the moment food is available
+### 🧑‍🍳 Donors
+- 📸 Multi-step food listing wizard with photo upload
+- ⏱️ Auto-expiry countdown timers
+- 📊 Real-time impact analytics dashboard
+- 🗺️ GPS + address + manual coordinate location picker
 
-🗺️ **MAPPED** &nbsp;&nbsp; Google Maps integration — search, GPS, or drop a pin for pickup
+</td>
+<td width="50%">
 
-⏱️ **TIMED** &nbsp;&nbsp; Auto-expiry countdowns — food listed with urgency windows
+### 🙋 Recipients
+- 🔍 Browse & filter food by type, distance, urgency
+- 🔔 Instant Socket.io notifications for new food nearby
+- 📍 Interactive Google Maps with pickup markers
+- ⚡ One-click claim before it's gone
 
-📊 **TRACKED** &nbsp;&nbsp; Full analytics — meals saved, people helped, impact over time
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-🔒 **SECURED** &nbsp;&nbsp; JWT auth, role-based access — 4 distinct user roles
+### 🚴 Volunteers
+- 📋 Available / Active / Completed delivery queue
+- 🚦 Urgency triage — color-coded priority system
+- 🗺️ One-tap Google Maps navigation to pickup
+- 🏆 Personal impact stats — deliveries, food, people helped
 
-📱 **RESPONSIVE** &nbsp;&nbsp; Seamless on mobile, tablet and desktop
+</td>
+<td width="50%">
 
-<br/>
+### 🛡️ Admins
+- 📈 Animated analytics with real-time charts
+- 👤 User management & role assignment
+- 🔧 System-wide listing & delivery monitoring
+- 🔒 JWT-secured role-based access control
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 👥 Four Roles. One Goal.
-
-<br/>
-
-| | Role | What They Do |
-|---|---|---|
-| 🧑‍🍳 | **Donor** | Lists surplus food with photos, categories, allergens & expiry windows |
-| 🙋 | **Recipient** | Browses & claims nearby available food in real time |
-| 🚴 | **Volunteer** | Accepts deliveries, navigates to pickup, marks completion |
-| 🛡️ | **Admin** | Manages users, monitors system health, views analytics |
-
-<br/>
-
----
-
-## 🛠️ Built With
-
-<br/>
+## 🛠️ Tech Stack
 
 ```yaml
-Frontend:
-  - React 18 + TypeScript        # Type-safe component architecture
-  - Tailwind CSS                 # Utility-first responsive styling
-  - Redux Toolkit + React Query  # Global state + server state
-  - React Router DOM v6          # Client-side routing
-  - Socket.io Client             # Real-time bidirectional events
-  - @react-google-maps/api       # Maps, Places & Geocoding
-  - Lucide React                 # Clean icon system
+Frontend:   React 18 · TypeScript · Tailwind CSS · Redux Toolkit
+            React Query · React Router v6 · Socket.io Client
+            @react-google-maps/api · Lucide React
 
-Backend:
-  - Node.js 20 + Express 4       # RESTful API server
-  - MongoDB + Mongoose           # Document database + ODM
-  - Socket.io                    # WebSocket event server
-  - JWT + bcrypt                 # Authentication & password hashing
-  - Multer                       # Image upload handling
-  - node-cron                    # Scheduled expiry jobs
+Backend:    Node.js 20 · Express 4 · MongoDB · Mongoose
+            Socket.io · JWT · bcrypt · Multer · node-cron
 ```
-
-<br/>
 
 ---
 
-## 🚀 Getting Started
+## 🤝 Contributing — *We Want YOU*
+
+<div align="center">
+
+**RescueNet is built by volunteers, for volunteers.**
+Every PR — big or small — directly helps feed people.
+Your code has real-world impact. Let's build this together.
+
+</div>
 
 <br/>
 
-### Prerequisites
+### 🎯 Good First Issues — perfect for newcomers
 
-```bash
-node  >= 18.x
-npm   >= 9.x
-MongoDB Atlas account (or local instance)
-Google Cloud project with Maps JS + Places + Geocoding + Distance Matrix APIs
-```
+| Label | What It Means | Good For |
+|---|---|---|
+| `good first issue` | Small, well-scoped, clearly described | First-time contributors |
+| `help wanted` | We need expertise here | Intermediate devs |
+| `enhancement` | New feature to implement | Creative builders |
+| `bug` | Something's broken, needs fixing | Debuggers & detectives |
+| `ui/ux` | Design & frontend polish | Designers & frontend devs |
+| `backend` | API, DB, or server-side work | Backend engineers |
 
-### Installation
-
-```bash
-# 1. Clone
-git clone https://github.com/yourusername/rescuenet.git
-cd rescuenet
-
-# 2. Install backend dependencies
-cd backend1 && npm install
-
-# 3. Install frontend dependencies
-cd ../frontend && npm install
-```
-
-### Environment Setup
-
-**`backend1/.env`**
-```env
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/rescuenet
-JWT_SECRET=your_jwt_secret_here
-JWT_EXPIRE=7d
-GOOGLE_MAPS_API_KEY=AIzaSy...
-```
-
-**`frontend/.env`**
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SOCKET_URL=http://localhost:5000
-REACT_APP_GOOGLE_MAPS_API_KEY=AIzaSy...
-```
-
-> ⚠️ Never commit `.env` files. They are gitignored.
-
-### Run
-
-```bash
-# Terminal 1 — Backend
-cd backend1 && npm run dev
-
-# Terminal 2 — Frontend
-cd frontend && npm start
-```
-
-Open **http://localhost:3000** and start rescuing food. 🥗
+👉 **[Browse open issues →](https://github.com/yourusername/rescuenet/issues)**
 
 <br/>
+
+### 🧭 Areas We'd Love Help With
+
+```
+🌐  Internationalization (i18n)    — make RescueNet work in every language
+📱  React Native mobile app        — take rescues on the go
+🧪  Testing                        — unit, integration & E2E with Cypress
+🔔  Push notifications             — PWA + browser push support
+🤖  ML matching                    — smart volunteer ↔ donor pairing
+♿  Accessibility                  — WCAG 2.1 AA compliance
+🐳  Docker                         — containerize the full stack
+📊  Advanced analytics             — charts, trends, heatmaps
+```
+
+### 📐 Commit Convention
+
+```
+feat:      ✨  A new feature
+fix:       🐛  A bug fix
+docs:      📝  Documentation changes
+style:     💅  Formatting, no logic change
+refactor:  ♻️   Code restructure, no feature/fix
+perf:      ⚡  Performance improvement
+chore:     🔧  Maintenance & tooling
+```
+
+> 💬 **Not sure where to start?** Open a [Discussion](https://github.com/yourusername/rescuenet/discussions) or drop a comment on any issue — we're friendly!
 
 ---
 
-## 🔌 API Reference
+## 📜 Code of Conduct
 
-```http
-# Authentication
-POST   /api/auth/register          Create account
-POST   /api/auth/login             Login → JWT
-GET    /api/auth/me                Current user
+We are committed to a welcoming, inclusive, and harassment-free community.
+By participating, you agree to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-# Food Listings
-GET    /api/food-donations         All available listings
-POST   /api/food-donations         Create new listing        🔒 donor
-GET    /api/food-donations/:id     Single listing
-PUT    /api/food-donations/:id     Update listing            🔒 donor
-DELETE /api/food-donations/:id     Delete listing            🔒 donor
-GET    /api/food-donations/my-donations  My listings         🔒 donor
-
-# Users
-GET    /api/users/profile          Get profile               🔒 auth
-PUT    /api/users/profile          Update profile            🔒 auth
-```
-
-<br/>
+Be kind. Be constructive. Be the change. 🌱
 
 ---
 
-## 🤝 Contributing
+## 📄 License
 
-```bash
-# Fork → Branch → Code → PR
-
-git checkout -b feat/your-feature
-git commit -m "feat: add your feature"
-git push origin feat/your-feature
-```
-
-**Commit style:**
-```
-feat:      New feature
-fix:       Bug fix
-docs:      Docs only
-refactor:  No functional change
-style:     Formatting
-chore:     Maintenance
-```
-
-All PRs welcome. Please open an issue first for major changes.
-
-<br/>
+Distributed under the **MIT License** — free for personal and commercial use.
+See [`LICENSE`](LICENSE) for full details.
 
 ---
 
 <div align="center">
 
-**🌱 Every pickup matters. Every meal counts.**
+<br/>
+
+### 🌍 *"The world has enough food for everyone. We just need to get it to the right place."*
 
 <br/>
 
-*Built with* ❤️ *and a mission to feed the world — one rescue at a time.*
+**If RescueNet resonates with you — star it, fork it, build with us.**
+Every contribution, no matter how small, feeds someone tonight.
 
 <br/>
 
-⭐ Star this repo if RescueNet inspired you!
+⭐ **[Star this repo](https://github.com/yourusername/rescuenet)** &nbsp;·&nbsp; 🍴 **[Fork it](https://github.com/yourusername/rescuenet/fork)** &nbsp;·&nbsp; 💬 **[Join the discussion](https://github.com/yourusername/rescuenet/discussions)**
+
+<br/>
+
+Made with ❤️ by the RescueNet community
 
 <br/>
 
 [![GitHub stars](https://img.shields.io/github/stars/yourusername/rescuenet?style=social)](https://github.com/yourusername/rescuenet)
-&nbsp;&nbsp;
+&nbsp;
 [![GitHub forks](https://img.shields.io/github/forks/yourusername/rescuenet?style=social)](https://github.com/yourusername/rescuenet)
+&nbsp;
+[![GitHub watchers](https://img.shields.io/github/watchers/yourusername/rescuenet?style=social)](https://github.com/yourusername/rescuenet)
+
+<br/>
 
 </div>
