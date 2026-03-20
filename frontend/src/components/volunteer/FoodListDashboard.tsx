@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { foodDonationService } from '../../services/foodDonationService';
+import CountdownTimer from '../common/CountdownTimer';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 
@@ -28,11 +29,24 @@ interface FoodListing {
 
 const urgencyFromListing = (l: FoodListing): 'high' | 'medium' | 'low' => {
   if (!l.bestBefore) return 'low';
-  const h = parseFloat(l.bestBefore);
-  if (h <= 2) return 'high';
-  if (h <= 6) return 'medium';
+  // Calculate remaining time
+  const createdMs = new Date(l.createdAt).getTime();
+  const expiryMs  = createdMs + parseFloat(l.bestBefore) * 3_600_000;
+  const remainingHours = (expiryMs - Date.now()) / 3_600_000;
+  if (remainingHours <= 0.5) return 'high';   // < 30 min
+  if (remainingHours <= 2)   return 'high';   // < 2 hours
+  if (remainingHours <= 6)   return 'medium'; // < 6 hours
   return 'low';
 };
+
+function getExpiryDate(l: FoodListing): Date {
+  return new Date(new Date(l.createdAt).getTime() + parseFloat(l.bestBefore || '0') * 3_600_000);
+}
+
+function isListingExpired(l: FoodListing): boolean {
+  if (!l.bestBefore) return false;
+  return getExpiryDate(l).getTime() < Date.now();
+}
 
 const FOOD_TYPES = ['All Types','Fresh Produce','Baked Goods','Non-perishable','Cooked Meals','Dairy','Beverages','Snacks'];
 const CATEGORY_EMOJI: Record<string,string> = {
@@ -120,11 +134,15 @@ const DeliveryCard = ({ listing, onAction, processing, userId }: {
         </div>
 
         {/* Info pills */}
+        {/* Countdown timer */}
+        <div style={{ marginBottom:10 }}>
+          <CountdownTimer expiryDate={getExpiryDate(listing)} compact={false}/>
+        </div>
+
         <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
           {[
             { icon:<MapPin size={11}/>, text:address.length>35?address.slice(0,35)+'…':address },
             { icon:<Package size={11}/>, text:`${listing.servings||listing.quantity||'?'} servings` },
-            { icon:<Clock size={11}/>, text:hoursLeft?`${hoursLeft}h window`:'Flexible' },
           ].map(({icon,text})=>(
             <div key={text} style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:10, background:'#f8fafc', border:'1px solid #f1f5f9', fontSize:'0.75rem', color:'#475569', fontWeight:600 }}>
               <span style={{ color:'#94a3b8' }}>{icon}</span>{text}

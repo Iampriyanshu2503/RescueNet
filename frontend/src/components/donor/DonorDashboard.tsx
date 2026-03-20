@@ -171,11 +171,24 @@ export default function DonorDashboard() {
         return items.slice(0, 4);
     })();
 
+    // Real derived trends
+    const todayListings  = myListings.filter((l:any) => new Date(l.createdAt).toDateString() === new Date().toDateString()).length;
+    const inProgressCount= myListings.filter((l:any) => ['confirmed','reserved','picked_up','in_transit'].includes(l.status)).length;
+    const avgServings    = myListings.length > 0 ? Math.round(totalServings / myListings.length) : 0;
+
     const stats = [
-        { icon: Package,  label: 'Total Donations',  numericValue: myListings.length, suffix: '', trend: `${completedListings} completed`,   gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', shadowColor: '#3b82f6', analyticsType: 'donations' as const },
-        { icon: Users,    label: 'People Served',    numericValue: totalServings,      suffix: '', trend: 'from your listings',               gradient: 'linear-gradient(135deg,#22c55e,#15803d)', shadowColor: '#22c55e', analyticsType: 'people-served' as const },
-        { icon: Calendar, label: 'Active Listings',  numericValue: activeListings,     suffix: '', trend: `${requestedListings} requested`,   gradient: 'linear-gradient(135deg,#f97316,#c2410c)', shadowColor: '#f97316', analyticsType: 'active-listings' as const },
-        { icon: Truck,    label: 'Pickup Requests',  numericValue: requestedListings,  suffix: '', trend: requestedListings > 0 ? `${requestedListings} need response` : 'all clear', gradient: 'linear-gradient(135deg,#a855f7,#6d28d9)', shadowColor: '#a855f7', analyticsType: 'pickup-requests' as const },
+        { icon: Package,  label: 'Total Donations',  numericValue: myListings.length,
+          trend: completedListings > 0 ? `${completedListings} delivered · ${myListings.length - completedListings} ongoing` : todayListings > 0 ? `${todayListings} added today` : 'no donations yet',
+          gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', shadowColor: '#3b82f6', analyticsType: 'donations' as const },
+        { icon: Users,    label: 'People Served',    numericValue: totalServings,
+          trend: totalServings > 0 ? `avg ${avgServings} servings per listing` : 'add listings to serve people',
+          gradient: 'linear-gradient(135deg,#22c55e,#15803d)', shadowColor: '#22c55e', analyticsType: 'people-served' as const },
+        { icon: Calendar, label: 'Active Listings',  numericValue: activeListings,
+          trend: inProgressCount > 0 ? `${inProgressCount} in progress` : activeListings > 0 ? `${activeListings} available now` : 'no active listings',
+          gradient: 'linear-gradient(135deg,#f97316,#c2410c)', shadowColor: '#f97316', analyticsType: 'active-listings' as const },
+        { icon: Truck,    label: 'Pickup Requests',  numericValue: requestedListings,
+          trend: requestedListings > 0 ? `${requestedListings} awaiting your response` : inProgressCount > 0 ? `${inProgressCount} in delivery` : 'no pending requests',
+          gradient: 'linear-gradient(135deg,#a855f7,#6d28d9)', shadowColor: '#a855f7', analyticsType: 'pickup-requests' as const },
     ];
 
     return (

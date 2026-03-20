@@ -103,12 +103,21 @@ function OrderCard({ order, onTrack }: { order: any; onTrack: (id: string) => vo
                     ))}
                 </div>
 
-                <button onClick={() => onTrack(order._id)}
-                    style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 16px', borderRadius:11, background:'linear-gradient(135deg,#8b5cf6,#6d28d9)', border:'none', color:'#fff', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', fontFamily:'inherit', boxShadow:'0 4px 14px rgba(139,92,246,0.3)', transition:'all .2s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 6px 20px rgba(139,92,246,0.45)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 4px 14px rgba(139,92,246,0.3)'; }}>
-                    <Truck size={13}/> Track Order <ArrowRight size={13}/>
-                </button>
+                {order.status !== 'completed' ? (
+                    <button onClick={() => onTrack(order._id)}
+                        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 16px', borderRadius:11, background:'linear-gradient(135deg,#8b5cf6,#6d28d9)', border:'none', color:'#fff', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', fontFamily:'inherit', boxShadow:'0 4px 14px rgba(139,92,246,0.3)', transition:'all .2s' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 6px 20px rgba(139,92,246,0.45)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 4px 14px rgba(139,92,246,0.3)'; }}>
+                        <Truck size={13}/> Track Order <ArrowRight size={13}/>
+                    </button>
+                ) : (
+                    <button onClick={() => onTrack(order._id)}
+                        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 16px', borderRadius:11, background:'#f0fdf4', border:'1.5px solid #bbf7d0', color:'#15803d', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', fontFamily:'inherit', transition:'all .2s' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background='#dcfce7'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background='#f0fdf4'; }}>
+                        <CheckCircle size={13}/> View Details
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -150,13 +159,13 @@ export default function RecipientDashboard() {
     }, []);
 
     /* ── Fetch my orders ── */
-    const fetchMyOrders = useCallback(async () => {
-        setOrdersLoading(true);
+    const fetchMyOrders = useCallback(async (force = false) => {
+        if (!force) setOrdersLoading(true);
         try {
             const res = await api.get('/food-donations/my-requests');
-            setMyOrders(Array.isArray(res.data) ? res.data : []);
+            const orders = Array.isArray(res.data) ? res.data : [];
+            setMyOrders(orders);
         } catch {
-            // fallback — will show empty
             setMyOrders([]);
         } finally { setOrdersLoading(false); }
     }, []);
@@ -164,16 +173,20 @@ export default function RecipientDashboard() {
     useEffect(() => {
         fetchListings();
         fetchMyOrders();
-        intervalRef.current = setInterval(() => {
+        // Poll faster (5s) when active orders exist, otherwise 15s
+    const pollMs = myOrders.some((o:any) =>
+        ['confirmed','reserved','picked_up','in_transit'].includes(o.status)
+    ) ? 5_000 : 15_000;
+    intervalRef.current = setInterval(() => {
             fetchListings(true);
             fetchMyOrders();
-        }, 15_000);
+        }, pollMs);
         return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
     }, [fetchListings, fetchMyOrders]);
 
-    /* Auto-switch to My Orders if food is on the way */
+    /* Auto-switch to My Orders if food is actively in progress */
     useEffect(() => {
-        const urgentStatuses = ['in_transit', 'picked_up', 'confirmed', 'reserved'];
+        const urgentStatuses = ['in_transit', 'picked_up', 'confirmed', 'reserved', 'requested'];
         const hasUrgent = myOrders.some(o => urgentStatuses.includes(o.status));
         if (hasUrgent && activeTab === 'browse') {
             setActiveTab('orders');
@@ -285,7 +298,7 @@ export default function RecipientDashboard() {
                                 style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:9, border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:'0.78rem', fontWeight:600, background:activeTab==='browse'?'#fff':'transparent', color:activeTab==='browse'?'#0f172a':'#94a3b8', boxShadow:activeTab==='browse'?'0 1px 6px rgba(0,0,0,.08)':'none', transition:'all .2s' }}>
                                 <Search size={13}/> Browse
                             </button>
-                            <button onClick={() => { setActiveTab('orders'); fetchMyOrders(); }}
+                            <button onClick={() => { setActiveTab('orders'); fetchMyOrders(true); }}
                                 style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:9, border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:'0.78rem', fontWeight:600, background:activeTab==='orders'?'#fff':'transparent', color:activeTab==='orders'?'#0f172a':'#94a3b8', boxShadow:activeTab==='orders'?'0 1px 6px rgba(0,0,0,.08)':'none', transition:'all .2s', position:'relative' }}>
                                 <Package size={13}/> My Orders
                                 {activeOrders > 0 && (
@@ -370,7 +383,48 @@ export default function RecipientDashboard() {
                 {/* ══ BROWSE TAB ══ */}
                 {activeTab === 'browse' && (
                     <>
-                        {/* Search + Filters */}
+                        {/* ── Active order banners ── */}
+                {myOrders.some((o:any) => ['in_transit','picked_up'].includes(o.status)) && (
+                    <div onClick={() => setActiveTab('orders')}
+                        style={{ background:'linear-gradient(135deg,#f0fdf4,#dcfce7)', border:'2px solid #22c55e', borderRadius:18, padding:'14px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:14, cursor:'pointer', boxShadow:'0 4px 20px rgba(34,197,94,.2)', transition:'all .2s' }}
+                        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
+                        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';}}>
+                        <div style={{ fontSize:'1.8rem', flexShrink:0 }}>🚗</div>
+                        <div style={{ flex:1 }}>
+                            <p style={{ fontSize:'0.9rem', fontWeight:800, color:'#14532d', marginBottom:3 }}>Your food is on the way!</p>
+                            <p style={{ fontSize:'0.78rem', color:'#16a34a' }}>Tap to track your order and confirm when received</p>
+                        </div>
+                        <div style={{ padding:'8px 14px', borderRadius:11, background:'#22c55e', color:'#fff', fontWeight:700, fontSize:'0.78rem', flexShrink:0 }}>Track →</div>
+                    </div>
+                )}
+                {myOrders.some((o:any) => o.status === 'confirmed') && !myOrders.some((o:any) => ['in_transit','picked_up'].includes(o.status)) && (
+                    <div onClick={() => setActiveTab('orders')}
+                        style={{ background:'linear-gradient(135deg,#eff6ff,#dbeafe)', border:'1.5px solid #3b82f6', borderRadius:18, padding:'14px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:14, cursor:'pointer', transition:'all .2s' }}
+                        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
+                        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';}}>
+                        <div style={{ fontSize:'1.8rem', flexShrink:0 }}>✅</div>
+                        <div style={{ flex:1 }}>
+                            <p style={{ fontSize:'0.9rem', fontWeight:800, color:'#1e3a5f', marginBottom:3 }}>Donor confirmed your request!</p>
+                            <p style={{ fontSize:'0.78rem', color:'#3b82f6' }}>A volunteer will pick it up soon — tap to track</p>
+                        </div>
+                        <div style={{ padding:'8px 14px', borderRadius:11, background:'#3b82f6', color:'#fff', fontWeight:700, fontSize:'0.78rem', flexShrink:0 }}>View →</div>
+                    </div>
+                )}
+                {myOrders.some((o:any) => o.status === 'reserved') && !myOrders.some((o:any) => ['in_transit','picked_up','confirmed'].includes(o.status)) && (
+                    <div onClick={() => setActiveTab('orders')}
+                        style={{ background:'linear-gradient(135deg,#faf5ff,#ede9fe)', border:'1.5px solid #8b5cf6', borderRadius:18, padding:'14px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:14, cursor:'pointer', transition:'all .2s' }}
+                        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
+                        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';}}>
+                        <div style={{ fontSize:'1.8rem', flexShrink:0 }}>🚴</div>
+                        <div style={{ flex:1 }}>
+                            <p style={{ fontSize:'0.9rem', fontWeight:800, color:'#4c1d95', marginBottom:3 }}>Volunteer assigned!</p>
+                            <p style={{ fontSize:'0.78rem', color:'#7c3aed' }}>A volunteer has accepted your pickup</p>
+                        </div>
+                        <div style={{ padding:'8px 14px', borderRadius:11, background:'#8b5cf6', color:'#fff', fontWeight:700, fontSize:'0.78rem', flexShrink:0 }}>Track →</div>
+                    </div>
+                )}
+
+                {/* Search + Filters */}
                         <div style={{ background:'#fff', borderRadius:20, border:'1px solid #f1f5f9', boxShadow:'0 2px 14px rgba(0,0,0,.04)', padding:'16px 20px', marginBottom:20 }}>
                             <div style={{ display:'flex', gap:10, marginBottom:14 }}>
                                 <div style={{ position:'relative', flex:1 }}>
