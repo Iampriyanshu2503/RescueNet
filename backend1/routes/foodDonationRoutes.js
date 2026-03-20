@@ -38,10 +38,21 @@ router.post('/', protect, async (req, res) => {
 /* ── GET ALL (available only — for recipients) ── */
 router.get('/', async (req, res) => {
   try {
+    const now = new Date();
     const docs = await FoodDonation.find({
       status: 'available',
-      $or: [{ expiresAt: { $gt: new Date() } }, { expiresAt: null }, { expiresAt: { $exists: false } }],
+      $or: [
+        { expiresAt: { $gt: now } },
+        { expiresAt: null, bestBefore: { $exists: false } },
+        { expiresAt: { $exists: false }, bestBefore: { $exists: false } },
+      ],
     }).sort({ createdAt: -1 });
+
+    // Auto-expire overdue listings in background (don't await)
+    FoodDonation.updateMany(
+      { status: 'available', expiresAt: { $lte: now, $exists: true, $ne: null } },
+      { $set: { status: 'expired' } }
+    ).catch(() => {});
     res.json(docs);
   } catch (err) { res.status(500).json({ message: 'Server Error' }); }
 });
@@ -57,13 +68,32 @@ router.get('/my-donations', protect, async (req, res) => {
 /* ── MY REQUESTS (recipient orders) ── */
 router.get('/my-requests', protect, async (req, res) => {
   try {
+    const userId = req.user._id;
+    const nonAvailableStatuses = ['requested','confirmed','reserved','picked_up','in_transit','completed'];
+
+    // Primary: find by requestedBy field (new docs)
+    // Fallback: find non-available docs not owned by this user (legacy docs missing requestedBy)
     const docs = await FoodDonation.find({
-      requestedBy: req.user._id,
-      status: { $in: ['requested','confirmed','reserved','picked_up','in_transit','completed'] },
-    }).sort({ requestedAt: -1 });
+      status: { $in: nonAvailableStatuses },
+      $or: [
+        { requestedBy: userId },
+        {
+          requestedBy: null,
+          user: { $ne: userId },
+          donor: { $ne: userId },
+        }
+      ]
+    })
+    .sort({ updatedAt: -1 })
+    .limit(50);
+
     res.json(docs);
-  } catch (err) { res.status(500).json({ message: 'Server Error' }); }
+  } catch (err) {
+    console.error('my-requests error:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
 });
+
 
 /* ── VOLUNTEER FEED — all non-expired listings across all statuses ── */
 router.get('/volunteer-feed', protect, async (req, res) => {
@@ -95,6 +125,17 @@ router.post('/:id/request', protect, async (req, res) => {
     if (!doc) return res.status(404).json({ message: 'Food donation not found' });
     if (doc.status !== 'available') return res.status(400).json({ message: `This listing is no longer available (status: ${doc.status})` });
     if (doc.donor.toString() === req.user._id.toString()) return res.status(400).json({ message: 'You cannot request your own donation' });
+    // Server-side expiry check
+    if (doc.bestBefore && doc.createdAt) {
+      const expiryMs = new Date(doc.createdAt).getTime() + doc.bestBefore * 3_600_000;
+      if (Date.now() > expiryMs) {
+        // Auto-mark as expired
+        doc.status = 'expired';
+        await doc.save();
+        return res.status(400).json({ message: 'This listing has expired and is no longer available' });
+      }
+    }
+
     doc.status = 'requested'; doc.requestedBy = req.user._id;
     doc.requestNotes = req.body.notes || ''; doc.requestedAt = new Date();
     await doc.save();
@@ -179,10 +220,20 @@ router.post('/:id/received', protect, async (req, res) => {
   try {
     const doc = await FoodDonation.findById(req.params.id);
     if (!doc) return res.status(404).json({ message: 'Not found' });
-    if (!['in_transit','picked_up','reserved'].includes(doc.status))
+    if (!['in_transit','picked_up','reserved','confirmed'].includes(doc.status))
       return res.status(400).json({ message: `Cannot confirm receipt — status: ${doc.status}` });
-    if (doc.requestedBy?.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Only the requesting recipient can confirm receipt' });
+
+    // Only check ownership if requestedBy is actually set (skip for legacy docs)
+    if (doc.requestedBy) {
+      if (doc.requestedBy.toString() !== req.user._id.toString())
+        return res.status(403).json({ message: 'Only the requesting recipient can confirm receipt' });
+    }
+    // Also block the donor from confirming their own listing
+    if (doc.donor.toString() === req.user._id.toString())
+      return res.status(403).json({ message: 'Donor cannot confirm receipt' });
+
     doc.status = 'completed'; doc.completedAt = new Date();
+    if (!doc.requestedBy) doc.requestedBy = req.user._id; // backfill for legacy docs
     await doc.save();
     if (global.socketServer) { try { await global.socketServer.notifyDonationUpdate(doc, 'completed'); } catch {} }
     res.json({ message: 'Receipt confirmed', donation: doc });
@@ -268,6 +319,37 @@ router.get('/:id/review-stats', async (req, res) => {
     const calc = arr => arr.length ? { averageRating: arr.reduce((s,r)=>s+r.rating,0)/arr.length, totalReviews: arr.length } : { averageRating: 0, totalReviews: 0 };
     res.json({ overall: calc(doc.reviews), donor: calc(doc.reviews.filter(r=>r.reviewType==='donor')), recipient: calc(doc.reviews.filter(r=>r.reviewType==='recipient')) });
   } catch (err) { res.status(500).json({ message: 'Server Error' }); }
+});
+
+
+/* ── DEBUG: check what recipient sees (remove after testing) ── */
+router.get('/debug-recipient', protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    // Find ALL non-available docs to see what's in DB
+    const all = await FoodDonation.find({
+      status: { $in: ['requested','confirmed','reserved','picked_up','in_transit','completed'] }
+    }).select('_id status requestedBy user foodType createdAt').lean();
+
+    const mine = all.filter(d =>
+      d.requestedBy?.toString() === userId.toString() ||
+      d.user?.toString() === userId.toString()
+    );
+
+    res.json({
+      yourUserId: userId,
+      totalNonAvailable: all.length,
+      yourOrders: mine.length,
+      allNonAvailable: all.map(d => ({
+        id: d._id,
+        status: d.status,
+        foodType: d.foodType,
+        requestedBy: d.requestedBy,
+        user: d.user,
+        isYours: d.requestedBy?.toString() === userId.toString()
+      }))
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;

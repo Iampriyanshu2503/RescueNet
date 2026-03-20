@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { foodDonationService } from '../../services/foodDonationService';
 import type { FoodDonation } from '../../types/foodListing';
 import {
-    Users, TrendingUp, Star, Recycle, Plus, Truck,
-    Bell, Settings, Package, Calendar, CheckCircle, Info,
-    BarChart3, Sparkles, LogOut, ChevronRight,
+    Users, Star, Recycle, Plus, Truck,
+    Bell, Package, Calendar, CheckCircle, Info,
+    BarChart3, LogOut, ChevronRight,
     Zap, Leaf, ArrowUpRight, Activity, RefreshCw, User
 } from 'lucide-react';
 import DetailedAnalyticsModal from './DetailedAnalyticsModal';
@@ -90,7 +90,6 @@ export default function DonorDashboard() {
     useEffect(() => { const t = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(t); }, []);
     useEffect(() => { const fn = () => setHeaderScrolled(window.scrollY > 12); window.addEventListener('scroll', fn); return () => window.removeEventListener('scroll', fn); }, []);
 
-    /* ── KEY FIX: fetch listings + re-fetch when navigating back ── */
     const fetchListings = useCallback(async () => {
         try {
             setListingsLoading(true);
@@ -105,44 +104,78 @@ export default function DonorDashboard() {
     }, []);
 
     useEffect(() => { fetchListings(); }, [fetchListings]);
-
-    /* Re-fetch when window regains focus (user returns from add-food page) */
     useEffect(() => {
         const onFocus = () => fetchListings();
         window.addEventListener('focus', onFocus);
         return () => window.removeEventListener('focus', onFocus);
     }, [fetchListings]);
 
-    const handleAddSurplusFood = () => navigate('/add-surplus-food');
+    const handleAddSurplusFood   = () => navigate('/add-surplus-food');
     const handleRequestWastePickup = () => navigate('/waste-to-energy');
-    const handleAddEvent = () => navigate('/list-event-food');
-    const handleTestEventReminder = () => alert('Event reminder test — Notification system working!');
-    const handleAnalytics = () => navigate('/donor-analytics');
-    const handleLogout = () => { localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/login'); };
-    const handleProfile = () => navigate('/donor-profile');
-    const handleStatClick = (t: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests') => { setSelectedAnalyticsType(t); setIsAnalyticsModalOpen(true); };
+    const handleAddEvent         = () => navigate('/list-event-food');
+    const handleTestEventReminder= () => alert('Event reminder test — Notification system working!');
+    const handleAnalytics        = () => navigate('/donor-analytics');
+    const handleLogout           = () => { localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/login'); };
+    const handleProfile          = () => navigate('/donor-profile');
+    const handleStatClick        = (t: 'donations' | 'people-served' | 'active-listings' | 'pickup-requests') => { setSelectedAnalyticsType(t); setIsAnalyticsModalOpen(true); };
 
     const hr = currentTime.getHours();
     const greeting = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
 
-    /* Derive real stats from actual listings */
     const activeListings    = myListings.filter(l => l.status === 'available').length;
     const requestedListings = myListings.filter(l => l.status === 'requested').length;
 
     function isExpiredListing(l: any) {
-        if (l.status === 'expired' || l.status === 'completed') return true;
-        try { return Date.now() > new Date(l.createdAt).getTime() + parseFloat(l.bestBefore) * 3_600_000; } catch { return false; }
+        // Trust the DB status first
+        if (['expired', 'cancelled', 'removed'].includes(l.status)) return true;
+        // Completed = done, not expired
+        if (['completed', 'claimed', 'requested', 'confirmed', 'reserved', 'picked_up', 'in_transit'].includes(l.status)) return false;
+        // For 'available' listings, check if time has actually run out
+        if (!l.bestBefore || !l.createdAt) return false;
+        try {
+            const h = parseFloat(l.bestBefore);
+            if (isNaN(h) || h <= 0) return false;
+            return Date.now() > new Date(l.createdAt).getTime() + h * 3_600_000;
+        } catch { return false; }
     }
-    const activeMyListings  = myListings.filter(l => !isExpiredListing(l));
-    const expiredMyListings = myListings.filter(l => isExpiredListing(l));
     const completedListings = myListings.filter(l => l.status === 'completed' || l.status === 'claimed').length;
-    const totalServings = myListings.reduce((s, l) => s + (l.servings || 0), 0);
+    const totalServings     = myListings.reduce((s, l) => s + (l.servings || 0), 0);
+
+    // Real-time timeAgo helper
+    const timeAgo = (d: string) => {
+        const diff = Date.now() - new Date(d).getTime();
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'just now';
+        if (m < 60) return `${m}m ago`;
+        const h = Math.floor(m / 60);
+        if (h < 24) return `${h}h ago`;
+        return `${Math.floor(h / 24)}d ago`;
+    };
+
+    // Build real activity feed from actual listings
+    const activityFeed = (() => {
+        const items: { icon: any; iconColor: string; iconBg: string; message: string; details: string; time: string }[] = [];
+        myListings.filter((l: any) => l.status === 'requested').slice(0, 2).forEach((l: any) => {
+            items.push({ icon: Info, iconColor: '#2563eb', iconBg: '#eff6ff', message: 'New pickup request', details: `Someone requested "${l.foodType}" — ${l.servings} servings`, time: timeAgo(l.requestedAt || l.updatedAt || l.createdAt) });
+        });
+        myListings.filter((l: any) => l.status === 'confirmed').slice(0, 1).forEach((l: any) => {
+            items.push({ icon: CheckCircle, iconColor: '#7c3aed', iconBg: '#f5f3ff', message: 'Request confirmed', details: `You approved "${l.foodType}" — volunteer assigned`, time: timeAgo(l.confirmedAt || l.updatedAt || l.createdAt) });
+        });
+        myListings.filter((l: any) => l.status === 'completed' || l.status === 'claimed').slice(0, 2).forEach((l: any) => {
+            items.push({ icon: CheckCircle, iconColor: '#16a34a', iconBg: '#f0fdf4', message: 'Pickup completed', details: `"${l.foodType}" — ${l.servings} servings delivered`, time: timeAgo(l.completedAt || l.updatedAt || l.createdAt) });
+        });
+        myListings.filter((l: any) => l.status === 'available').slice(0, 2).forEach((l: any) => {
+            items.push({ icon: Package, iconColor: '#f97316', iconBg: '#fff7ed', message: 'Listing active', details: `"${l.foodType}" — ${l.servings} servings available`, time: timeAgo(l.createdAt) });
+        });
+        // Sort by most recent
+        return items.slice(0, 4);
+    })();
 
     const stats = [
-        { icon: Package,  label: 'Total Donations',  numericValue: myListings.length, suffix: '', trend: '+12% this month',   gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', shadowColor: '#3b82f6', analyticsType: 'donations' as const },
-        { icon: Users,    label: 'People Served',    numericValue: totalServings,      suffix: '', trend: 'from your listings', gradient: 'linear-gradient(135deg,#22c55e,#15803d)', shadowColor: '#22c55e', analyticsType: 'people-served' as const },
-        { icon: Calendar, label: 'Active Listings',  numericValue: activeListings,     suffix: '', trend: `${completedListings} completed`, gradient: 'linear-gradient(135deg,#f97316,#c2410c)', shadowColor: '#f97316', analyticsType: 'active-listings' as const },
-        { icon: Truck,    label: 'Pickup Requests',  numericValue: requestedListings,                 suffix: '', trend: '5 new today',       gradient: 'linear-gradient(135deg,#a855f7,#6d28d9)', shadowColor: '#a855f7', analyticsType: 'pickup-requests' as const },
+        { icon: Package,  label: 'Total Donations',  numericValue: myListings.length, suffix: '', trend: `${completedListings} completed`,   gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', shadowColor: '#3b82f6', analyticsType: 'donations' as const },
+        { icon: Users,    label: 'People Served',    numericValue: totalServings,      suffix: '', trend: 'from your listings',               gradient: 'linear-gradient(135deg,#22c55e,#15803d)', shadowColor: '#22c55e', analyticsType: 'people-served' as const },
+        { icon: Calendar, label: 'Active Listings',  numericValue: activeListings,     suffix: '', trend: `${requestedListings} requested`,   gradient: 'linear-gradient(135deg,#f97316,#c2410c)', shadowColor: '#f97316', analyticsType: 'active-listings' as const },
+        { icon: Truck,    label: 'Pickup Requests',  numericValue: requestedListings,  suffix: '', trend: requestedListings > 0 ? `${requestedListings} need response` : 'all clear', gradient: 'linear-gradient(135deg,#a855f7,#6d28d9)', shadowColor: '#a855f7', analyticsType: 'pickup-requests' as const },
     ];
 
     return (
@@ -155,8 +188,6 @@ export default function DonorDashboard() {
                 @keyframes heroIn     { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
                 @keyframes float      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
                 @keyframes pulse      { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:0.55} }
-                @keyframes ripple     { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(3.2);opacity:0} }
-                @keyframes shimmer    { 0%{background-position:-200% center} 100%{background-position:200% center} }
                 @keyframes popIn      { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
                 @keyframes ticker     { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
                 @keyframes morph      { 0%,100%{border-radius:60% 40% 30% 70%/60% 30% 70% 40%} 50%{border-radius:30% 60% 70% 40%/50% 60% 30% 60%} }
@@ -189,7 +220,7 @@ export default function DonorDashboard() {
                         </button>
                         <button style={{ width: 38, height: 38, borderRadius: 11, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
                             <Bell size={15} color="#64748b" />
-                            <div style={{ position: 'absolute', top: 7, right: 7, width: 7, height: 7, borderRadius: '50%', background: '#ef4444', border: '1.5px solid #fff', animation: 'pulse 2s ease-in-out infinite' }} />
+                            {requestedListings > 0 && <div style={{ position: 'absolute', top: 7, right: 7, width: 7, height: 7, borderRadius: '50%', background: '#ef4444', border: '1.5px solid #fff', animation: 'pulse 2s ease-in-out infinite' }} />}
                         </button>
                         <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 11, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                             <LogOut size={13} /> Logout
@@ -213,7 +244,8 @@ export default function DonorDashboard() {
                             </div>
                             <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(1.5rem,3vw,2rem)', color: '#fff', letterSpacing: '-0.025em', marginBottom: 10, lineHeight: 1.2 }}>Good {greeting}! 🌿</h2>
                             <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.58)', maxWidth: 400, lineHeight: 1.7 }}>
-                                You have <strong style={{ color: '#86efac' }}>{activeListings} active listing{activeListings !== 1 ? 's' : ''}</strong> right now. Keep going!
+                                You have <strong style={{ color: '#86efac' }}>{activeListings} active listing{activeListings !== 1 ? 's' : ''}</strong> right now.
+                                {requestedListings > 0 && <> <strong style={{ color: '#fbbf24' }}>{requestedListings} pending request{requestedListings !== 1 ? 's' : ''}</strong> need your response!</>}
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -235,12 +267,10 @@ export default function DonorDashboard() {
                                     `✅ ${completedListings} completed pickup${completedListings !== 1 ? 's' : ''}`,
                                     `⚡ ${activeListings} active listing${activeListings !== 1 ? 's' : ''}`,
                                     `👥 ${totalServings} serving${totalServings !== 1 ? 's' : ''} shared`,
-                                    `📦 ${myListings.filter((l: any) => l.status === 'requested').length} awaiting pickup`,
+                                    `📦 ${requestedListings} awaiting response`,
                                     ...myListings.slice(0, 3).map((l: any) => `🍽️ "${l.foodType}" listed`),
                                 ].filter(Boolean);
-                                // Duplicate for seamless loop
-                                const doubled = [...ticks, ...ticks];
-                                return doubled.map((t, i) => (
+                                return [...ticks, ...ticks].map((t, i) => (
                                     <span key={i} style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>{t}</span>
                                 ));
                             })()}
@@ -263,10 +293,10 @@ export default function DonorDashboard() {
                             <div><h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Quick Actions</h2><p style={{ fontSize: '0.67rem', color: '#94a3b8', marginTop: 1 }}>Common donor tasks</p></div>
                         </div>
                         <div style={{ padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: 9 }}>
-                            <QuickBtn icon={Plus}     label="Add Surplus Food"     gradient="linear-gradient(135deg,#22c55e,#15803d)" shadowColor="#22c55e" onClick={handleAddSurplusFood}     delay={0.25} />
-                            <QuickBtn icon={Calendar} label="List Event Food"       gradient="linear-gradient(135deg,#22c55e,#15803d)" shadowColor="#22c55e" onClick={handleAddEvent}           delay={0.32} />
-                            <QuickBtn icon={Recycle}  label="Schedule Waste Pickup" gradient="linear-gradient(135deg,#f97316,#c2410c)" shadowColor="#f97316" onClick={handleRequestWastePickup} delay={0.39} />
-                            <QuickBtn icon={Settings} label="Test Event Reminder"  gradient="linear-gradient(135deg,#f97316,#c2410c)" shadowColor="#f97316" onClick={handleTestEventReminder}  delay={0.46} />
+                            <QuickBtn icon={Plus}     label="Add Surplus Food"      gradient="linear-gradient(135deg,#22c55e,#15803d)" shadowColor="#22c55e" onClick={handleAddSurplusFood}      delay={0.25} />
+                            <QuickBtn icon={Calendar} label="List Event Food"        gradient="linear-gradient(135deg,#22c55e,#15803d)" shadowColor="#22c55e" onClick={handleAddEvent}            delay={0.32} />
+                            <QuickBtn icon={Recycle}  label="Schedule Waste Pickup"  gradient="linear-gradient(135deg,#f97316,#c2410c)" shadowColor="#f97316" onClick={handleRequestWastePickup}  delay={0.39} />
+                            <QuickBtn icon={BarChart3} label="View Analytics"        gradient="linear-gradient(135deg,#3b82f6,#1d4ed8)" shadowColor="#3b82f6" onClick={handleAnalytics}           delay={0.46} />
                             <div style={{ marginTop: 4, background: 'linear-gradient(135deg,#f0fdf4,#eff6ff)', border: '1px solid #bbf7d0', borderRadius: 15, padding: '13px 14px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}><Calendar size={12} color="#16a34a" /><span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#14532d' }}>Event Calendar</span></div>
                                 <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 8 }}>Smart event-based redistribution</p>
@@ -275,7 +305,7 @@ export default function DonorDashboard() {
                         </div>
                     </div>
 
-                    {/* ── LISTINGS PANEL — real data + refresh ── */}
+                    {/* LISTINGS PANEL */}
                     <div style={{ background: '#fff', borderRadius: 22, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 14px rgba(0,0,0,0.04)', animation: 'cardEnter 0.55s ease 0.28s both', opacity: 0 }}>
                         <div style={{ padding: '18px 22px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
                             <Package size={15} color="#3b82f6" />
@@ -306,24 +336,102 @@ export default function DonorDashboard() {
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {myListings.map(item => <FoodListingVisibility key={item._id} listing={item} />)}
+                                    {/* ── Section helpers ── */}
+                                    {(() => {
+                                        const pending   = myListings.filter((l:any) => ['requested','confirmed','reserved','picked_up','in_transit'].includes(l.status));
+                                        const active    = myListings.filter((l:any) => l.status === 'available');
+                                        const delivered = myListings.filter((l:any) => l.status === 'completed' || l.status === 'claimed');
+                                        const expired   = myListings.filter((l:any) => {
+                                            if (l.status === 'expired') return true;
+                                            if (['available'].includes(l.status) && l.bestBefore && l.createdAt) {
+                                                try { return Date.now() > new Date(l.createdAt).getTime() + parseFloat(l.bestBefore) * 3_600_000; } catch { return false; }
+                                            }
+                                            return false;
+                                        });
+                                        const SectionHeader = ({ emoji, label, count, color, bg }: any) => (
+                                            <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10, background:bg, marginBottom:8, marginTop:4 }}>
+                                                <span style={{ fontSize:'0.9rem' }}>{emoji}</span>
+                                                <span style={{ fontSize:'0.75rem', fontWeight:800, color, textTransform:'uppercase', letterSpacing:'0.06em' }}>{label}</span>
+                                                <span style={{ marginLeft:'auto', fontSize:'0.68rem', fontWeight:700, color, background:'rgba(255,255,255,0.6)', borderRadius:99, padding:'2px 8px' }}>{count}</span>
+                                            </div>
+                                        );
+                                        return (
+                                            <>
+                                                {/* Pending requests */}
+                                                {pending.length > 0 && (
+                                                    <div style={{ marginBottom:16 }}>
+                                                        <SectionHeader emoji="📤" label="Pending Orders" count={pending.length} color="#1d4ed8" bg="#eff6ff"/>
+                                                        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                                                            {pending.map((item:any) => (
+                                                                <FoodListingVisibility key={item._id} listing={item} onStatusChange={() => setTimeout(fetchListings, 500)}/>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Active listings */}
+                                                {active.length > 0 && (
+                                                    <div style={{ marginBottom:16 }}>
+                                                        <SectionHeader emoji="🍱" label="Active Listings" count={active.length} color="#15803d" bg="#f0fdf4"/>
+                                                        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                                                            {active.map((item:any) => (
+                                                                <FoodListingVisibility key={item._id} listing={item} onStatusChange={() => setTimeout(fetchListings, 500)}/>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Delivered */}
+                                                {delivered.length > 0 && (
+                                                    <div style={{ marginBottom:16 }}>
+                                                        <SectionHeader emoji="✅" label="Delivered" count={delivered.length} color="#15803d" bg="#f0fdf4"/>
+                                                        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                                                            {delivered.map((item:any) => (
+                                                                <FoodListingVisibility key={item._id} listing={item} onStatusChange={() => setTimeout(fetchListings, 500)}/>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Expired */}
+                                                {expired.length > 0 && (
+                                                    <div>
+                                                        <SectionHeader emoji="⏰" label="Expired" count={expired.length} color="#dc2626" bg="#fef2f2"/>
+                                                        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                                                            {expired.map((item:any) => (
+                                                                <FoodListingVisibility key={item._id} listing={item} onStatusChange={() => setTimeout(fetchListings, 500)}/>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* All empty */}
+                                                {pending.length === 0 && active.length === 0 && delivered.length === 0 && expired.length === 0 && (
+                                                    <div style={{ textAlign:'center', padding:'32px 16px' }}>
+                                                        <p style={{ fontSize:'0.82rem', color:'#94a3b8' }}>No listings yet</p>
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Recent Activity */}
+                    {/* RECENT ACTIVITY — real data */}
                     <div style={{ background: '#fff', borderRadius: 22, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 14px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', animation: 'cardEnter 0.55s ease 0.36s both', opacity: 0 }}>
                         <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', gap: 9 }}>
                             <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#f97316,#c2410c)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Activity size={15} color="#fff" /></div>
-                            <div><h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Recent Activity</h2><p style={{ fontSize: '0.67rem', color: '#94a3b8', marginTop: 1 }}>Latest updates</p></div>
+                            <div style={{ flex: 1 }}><h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Recent Activity</h2><p style={{ fontSize: '0.67rem', color: '#94a3b8', marginTop: 1 }}>From your listings</p></div>
+                            <button onClick={fetchListings} style={{ width: 24, height: 24, borderRadius: 7, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                <RefreshCw size={10} color="#94a3b8" style={{ animation: listingsLoading ? 'spin 0.8s linear infinite' : 'none' }}/>
+                            </button>
                         </div>
                         <div style={{ padding: '8px', flex: 1 }}>
-                            {[
-                                { icon: CheckCircle, iconColor: '#16a34a', iconBg: '#f0fdf4', message: 'Pizza pickup completed', details: 'Picked up by Maria — 18 slices distributed', time: '2 hours ago' },
-                                { icon: Info,        iconColor: '#2563eb', iconBg: '#eff6ff', message: 'New pickup request',    details: 'Student Union requesting sandwich pickup', time: '5 min ago' },
-                                { icon: Calendar,    iconColor: '#ea580c', iconBg: '#fff7ed', message: 'Event reminder',        details: 'Campus Food Drive tomorrow at 2 PM',   time: '1 hour ago' },
-                            ].map((a, i) => (
+                            {activityFeed.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                                    <p style={{ fontSize: '1.5rem', marginBottom: 8 }}>📭</p>
+                                    <p style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 500 }}>No recent activity</p>
+                                    <p style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: 4 }}>Add a listing to get started</p>
+                                </div>
+                            ) : activityFeed.map((a, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 10px', borderRadius: 12, transition: 'background 0.2s', cursor: 'default', animation: `slideUp 0.5s ease ${0.42 + i * 0.09}s both`, opacity: 0 }}
                                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
                                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
@@ -339,7 +447,7 @@ export default function DonorDashboard() {
                         <div style={{ margin: '0 12px 14px', background: 'linear-gradient(135deg,#f0fdf4,#eff6ff)', border: '1px solid #bbf7d0', borderRadius: 14, padding: '13px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}><Star size={12} color="#f97316" fill="#f97316" /><span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0f172a' }}>Your Impact Score</span></div>
                             <div style={{ display: 'flex', gap: 7 }}>
-                                {[['🍱', String(myListings.length)], ['👥', String(totalServings)], ['🌿', 'A+']].map(([e, v]) => (
+                                {[['🍱', String(myListings.length)], ['👥', String(totalServings)], ['🌿', completedListings >= 10 ? 'A+' : completedListings >= 5 ? 'A' : completedListings >= 1 ? 'B+' : 'B']].map(([e, v]) => (
                                     <div key={v} style={{ flex: 1, textAlign: 'center', background: '#fff', borderRadius: 10, padding: '8px 4px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'default' }}
                                         onMouseEnter={el => { (el.currentTarget as HTMLElement).style.transform = 'scale(1.06)'; }}
                                         onMouseLeave={el => { (el.currentTarget as HTMLElement).style.transform = 'none'; }}>

@@ -299,9 +299,9 @@ export default function DonorProfile() {
             <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 24px' }}>
 
                 {/* ══ HERO CARD ══ */}
-                <div style={{ borderRadius:28, overflow:'hidden', boxShadow:'0 20px 60px rgba(0,0,0,0.1)', marginBottom:24, animation:'fadeUp 0.6s ease both' }}>
+                <div style={{ borderRadius:28, overflow:'visible', boxShadow:'0 20px 60px rgba(0,0,0,0.1)', marginBottom:24, animation:'fadeUp 0.6s ease both' }}>
                     {/* Banner with animated gradient */}
-                    <div style={{ height:140, background:'linear-gradient(135deg,#052e16,#064e3b,#0f766e)', position:'relative', overflow:'hidden' }}>
+                    <div style={{ height:140, overflow:'hidden', background:'linear-gradient(135deg,#052e16,#064e3b,#0f766e)', position:'relative', overflow:'hidden' }}>
                         <div style={{ position:'absolute', top:-40, right:-40, width:240, height:240, borderRadius:'50%', background:'rgba(34,197,94,0.12)', filter:'blur(24px)', animation:'float 4s ease-in-out infinite' }}/>
                         <div style={{ position:'absolute', bottom:-30, left:'20%', width:180, height:180, borderRadius:'50%', background:'rgba(16,185,129,0.08)', filter:'blur(20px)', animation:'float 5s ease-in-out 1s infinite' }}/>
                         <div style={{ position:'absolute', top:16, left:24, display:'flex', gap:8 }}>
@@ -318,8 +318,8 @@ export default function DonorProfile() {
                     </div>
 
                     {/* Profile info row */}
-                    <div style={{ background:'#fff', padding:'0 32px 28px' }}>
-                        <div style={{ display:'flex', alignItems:'flex-end', gap:20, marginTop:-52, marginBottom:24, flexWrap:'wrap' }}>
+                    <div style={{ background:'#fff', padding:'8px 32px 28px' }}>
+                        <div style={{ display:'flex', alignItems:'flex-end', gap:20, marginTop:-48, marginBottom:20, flexWrap:'wrap', position:'relative', zIndex:2 }}>
                             {/* Avatar with upload */}
                             <div style={{ position:'relative', flexShrink:0 }}
                                 onMouseEnter={() => setAvatarHov(true)}
@@ -342,7 +342,7 @@ export default function DonorProfile() {
                                 <div style={{ position:'absolute', bottom:2, right:2, width:16, height:16, borderRadius:'50%', background:'#22c55e', border:'3px solid #fff', animation:'pulse 2s ease-in-out infinite' }}/>
                             </div>
 
-                            <div style={{ flex:1, paddingBottom:4 }}>
+                            <div style={{ flex:1, paddingBottom:4, paddingTop:54 }}>
                                 <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:4 }}>
                                     <h2 style={{ fontSize:'1.6rem', fontWeight:800, color:'#0f172a', fontFamily:"'Playfair Display',serif" }}>{profile.name}</h2>
                                     <span style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:99, background:'#f0fdf4', border:'1px solid #bbf7d0', fontSize:'0.7rem', fontWeight:700, color:'#16a34a' }}>

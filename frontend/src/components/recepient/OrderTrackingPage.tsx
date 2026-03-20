@@ -49,10 +49,11 @@ export default function OrderTrackingPage() {
     const [error,         setError]         = useState<string | null>(null);
     const [lastUpdated,   setLastUpdated]   = useState(new Date());
     const [confirming,    setConfirming]    = useState(false); // recipient confirming receipt
-    const [rated,         setRated]         = useState(false);
-    const [rating,        setRating]        = useState(0);
-    const [reviewComment, setReviewComment] = useState('');
-    const [submittingRev, setSubmittingRev] = useState(false);
+    const [rated,          setRated]          = useState(false);
+    const [rating,         setRating]         = useState(0);
+    const [reviewComment,  setReviewComment]  = useState('');
+    const [submittingRev,  setSubmittingRev]  = useState(false);
+    const [submittedReview,setSubmittedReview]= useState<any>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval>|null>(null);
 
     const fetchData = useCallback(async (silent = false) => {
@@ -63,6 +64,23 @@ export default function OrderTrackingPage() {
             const data = await foodDonationService.getById(id);
             setListing(data);
             setOrderStatus((data as any).status || 'requested');
+
+            // Check if current user already submitted a review
+            try {
+                const stored = localStorage.getItem('user');
+                const userId = stored ? JSON.parse(stored)._id : null;
+                const reviews = (data as any).reviews || [];
+                const myReview = reviews.find((r: any) =>
+                    r.user === userId || r.user?._id === userId || r.user?.toString() === userId
+                );
+                if (myReview) {
+                    setRated(true);
+                    setRating(myReview.rating || 0);
+                    setReviewComment(myReview.comment || '');
+                    setSubmittedReview(myReview);
+                }
+            } catch {}
+
             setLastUpdated(new Date());
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Failed to load order details.');
@@ -100,10 +118,12 @@ export default function OrderTrackingPage() {
         if (!rating) return;
         setSubmittingRev(true);
         try {
+            const comment = reviewComment || 'Great donation!';
             await api.post(`/food-donations/${id}/reviews`, {
-                rating, comment: reviewComment || 'Great donation!', reviewType: 'donor'
+                rating, comment, reviewType: 'donor'
             });
             setRated(true);
+            setSubmittedReview({ rating, comment, createdAt: new Date().toISOString() });
             showNotification.success('Review submitted! Thank you 🌟');
         } catch (err: any) {
             showNotification.error(err?.response?.data?.message || 'Failed to submit review');
@@ -113,7 +133,7 @@ export default function OrderTrackingPage() {
     const currentIdx  = getStepIndex(orderStatus);
     const isCompleted = orderStatus === 'completed';
     const isInTransit = orderStatus === 'in_transit';
-    const canConfirm  = isInTransit || orderStatus === 'picked_up'; // recipient can confirm when food is en route
+    const canConfirm  = ['in_transit', 'picked_up', 'reserved', 'confirmed'].includes(orderStatus);
 
     const CSS = `
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
@@ -201,7 +221,7 @@ export default function OrderTrackingPage() {
 
                 {/* ── CONFIRM RECEIPT BANNER ── show when in_transit or picked_up */}
                 {canConfirm && !isCompleted && (
-                    <div style={{ background:'linear-gradient(135deg,#f0fdf4,#dcfce7)', border:'2px solid #22c55e', borderRadius:20, padding:'20px 22px', display:'flex', alignItems:'center', gap:16, animation:'popIn .4s ease both', boxShadow:'0 8px 24px rgba(34,197,94,.2)' }}>
+                    <div style={{ background:'linear-gradient(135deg,#f0fdf4,#dcfce7)', border:'2px solid #22c55e', borderRadius:20, padding:'20px 22px', display:'flex', alignItems:'center', gap:16, animation:'fadeUp .3s ease both', boxShadow:'0 8px 24px rgba(34,197,94,.2)' }}>
                         <div style={{ width:48, height:48, borderRadius:14, background:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'1.4rem' }}>
                             🎁
                         </div>
@@ -220,7 +240,7 @@ export default function OrderTrackingPage() {
                 )}
 
                 {/* Progress timeline */}
-                <div style={{ background:'#fff', borderRadius:22, border:'1px solid #f1f5f9', boxShadow:'0 4px 20px rgba(0,0,0,.06)', overflow:'hidden', animation:'fadeUp .4s ease .06s both', opacity:0 }}>
+                <div style={{ background:'#fff', borderRadius:22, border:'1px solid #f1f5f9', boxShadow:'0 4px 20px rgba(0,0,0,.06)', overflow:'hidden', animation:'fadeUp .4s ease .06s both' }}>
                     <div style={{ background:'linear-gradient(135deg,#eff6ff,#f5f3ff)', padding:'14px 22px', borderBottom:'1px solid #e2e8f0', display:'flex', alignItems:'center', gap:10 }}>
                         <Navigation size={16} color="#6d28d9"/>
                         <h3 style={{ fontWeight:700, color:'#1e1b4b', fontSize:'0.95rem' }}>Delivery Progress</h3>
@@ -261,7 +281,7 @@ export default function OrderTrackingPage() {
                 </div>
 
                 {/* Pickup details */}
-                <div style={{ background:'#fff', borderRadius:22, border:'1px solid #f1f5f9', boxShadow:'0 4px 20px rgba(0,0,0,.06)', overflow:'hidden', animation:'fadeUp .4s ease .12s both', opacity:0 }}>
+                <div style={{ background:'#fff', borderRadius:22, border:'1px solid #f1f5f9', boxShadow:'0 4px 20px rgba(0,0,0,.06)', overflow:'hidden', animation:'fadeUp .4s ease .12s both' }}>
                     <div style={{ background:'#f0fdf4', padding:'14px 22px', borderBottom:'1px solid #dcfce7', display:'flex', alignItems:'center', gap:10 }}>
                         <Leaf size={15} color="#16a34a"/>
                         <h3 style={{ fontWeight:700, color:'#14532d', fontSize:'0.95rem' }}>Pickup Details</h3>
@@ -328,8 +348,57 @@ export default function OrderTrackingPage() {
                     </div>
                 )}
                 {isCompleted && rated && (
-                    <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:16, padding:'16px', textAlign:'center' }}>
-                        <p style={{ color:'#15803d', fontWeight:700 }}>✅ Review submitted! Thank you for your feedback.</p>
+                    <div style={{ background:'#fff', borderRadius:22, border:'1.5px solid #fde68a', boxShadow:'0 4px 20px rgba(0,0,0,.06)', padding:'22px', animation:'fadeUp .4s ease both' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                            <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg,#f59e0b,#d97706)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                                <span style={{ fontSize:'1.2rem' }}>⭐</span>
+                            </div>
+                            <div>
+                                <p style={{ fontSize:'0.88rem', fontWeight:800, color:'#0f172a' }}>Your Review</p>
+                                <p style={{ fontSize:'0.72rem', color:'#94a3b8' }}>
+                                    {submittedReview?.createdAt ? new Date(submittedReview.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : 'Just now'}
+                                </p>
+                            </div>
+                            <div style={{ marginLeft:'auto', display:'flex', gap:3 }}>
+                                {[1,2,3,4,5].map(s => (
+                                    <span key={s} style={{ fontSize:'1.1rem', opacity: s <= (submittedReview?.rating || rating) ? 1 : 0.25 }}>⭐</span>
+                                ))}
+                            </div>
+                        </div>
+                        {(submittedReview?.comment || reviewComment) && (
+                            <div style={{ background:'#fffbeb', borderRadius:12, padding:'12px 16px', border:'1px solid #fde68a' }}>
+                                <p style={{ fontSize:'0.85rem', color:'#78350f', lineHeight:1.6, fontStyle:'italic' }}>
+                                    "{submittedReview?.comment || reviewComment}"
+                                </p>
+                            </div>
+                        )}
+                        <p style={{ fontSize:'0.75rem', color:'#15803d', fontWeight:600, marginTop:12, textAlign:'center' }}>
+                            ✅ Thank you for your feedback! It helps donors improve.
+                        </p>
+                    </div>
+                )}
+
+                {/* Big CTA when food is on the way — hard to miss */}
+                {canConfirm && !isCompleted && (
+                    <div style={{ background:'linear-gradient(135deg,#14532d,#15803d,#22c55e)', borderRadius:20, padding:'24px', textAlign:'center', boxShadow:'0 12px 40px rgba(34,197,94,.35)', animation:'fadeUp .3s ease both' }}>
+                        <p style={{ fontSize:'1.4rem', marginBottom:8 }}>🎁</p>
+                        <h3 style={{ fontWeight:800, color:'#fff', fontSize:'1.1rem', marginBottom:6 }}>
+                            {orderStatus === 'in_transit' ? 'Food is on its way!' : 
+                             orderStatus === 'picked_up'  ? 'Volunteer has the food!' :
+                             orderStatus === 'reserved'   ? 'Volunteer assigned!' : 'Donor confirmed!'}
+                        </h3>
+                        <p style={{ fontSize:'0.82rem', color:'rgba(255,255,255,0.7)', marginBottom:18, lineHeight:1.6 }}>
+                            {orderStatus === 'in_transit' 
+                                ? 'Tap below when you receive the food to complete the delivery'
+                                : 'You can confirm receipt now or wait until you receive it'}
+                        </p>
+                        <button onClick={handleConfirmReceipt} disabled={confirming}
+                            style={{ padding:'14px 32px', borderRadius:14, background:confirming?'rgba(255,255,255,0.3)':'#fff', border:'none', color:confirming?'#fff':'#15803d', fontWeight:800, fontSize:'1rem', cursor:confirming?'not-allowed':'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:8, boxShadow:'0 4px 16px rgba(0,0,0,0.15)', transition:'all .2s' }}>
+                            {confirming
+                                ? <><div style={{ width:16, height:16, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', animation:'spin .8s linear infinite' }}/> Confirming…</>
+                                : <>✅ I Got My Food!</>
+                            }
+                        </button>
                     </div>
                 )}
 

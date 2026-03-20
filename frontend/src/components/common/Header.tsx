@@ -8,13 +8,8 @@ import { getDashboardRoute } from '../../utils/routeUtils';
 import { showNotification } from '../../utils/notificationUtils';
 
 interface NotificationItem {
-    id: string; message: string; timeAgo: string; type: 'donation' | 'request' | 'report';
+    id: string; message: string; timeAgo: string; type: 'donation' | 'request' | 'report'; read?: boolean;
 }
-const notifications: NotificationItem[] = [
-    { id: '1', message: 'New donation available in Downtown Area', timeAgo: '5 minutes ago', type: 'donation' },
-    { id: '2', message: 'Your donation request has been accepted', timeAgo: '1 hour ago', type: 'request' },
-    { id: '3', message: 'Weekly impact report is ready', timeAgo: '2 hours ago', type: 'report' }
-];
 
 /* Role → profile route */
 const PROFILE_ROUTE: Record<string, string> = {
@@ -43,9 +38,73 @@ const Header = () => {
     const [locationSuggestions, setLocationSuggestions] = useState<Array<{id:string,address:string,coordinates:[number,number]}>>([]);
     const [profileHov,          setProfileHov]          = useState(false);
     const [logoutHov,           setLogoutHov]           = useState(false);
+    const [notifications,       setNotifications]       = useState<NotificationItem[]>([]);
+    const [notifsLoaded,        setNotifsLoaded]        = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
 
     const roleColor = ROLE_COLOR[user?.role || 'donor'] || ROLE_COLOR.donor;
+
+    /* ── Fetch real notifications ── */
+    useEffect(() => {
+        if (!user || notifsLoaded) return;
+        const fetchNotifs = async () => {
+            try {
+                const items: NotificationItem[] = [];
+                const timeAgo = (d: string) => {
+                    const diff = Date.now() - new Date(d).getTime();
+                    const m = Math.floor(diff / 60000);
+                    if (m < 1)  return 'just now';
+                    if (m < 60) return `${m}m ago`;
+                    const h = Math.floor(m / 60);
+                    if (h < 24) return `${h}h ago`;
+                    return `${Math.floor(h/24)}d ago`;
+                };
+
+                if (user.role === 'donor') {
+                    const res = await fetch('/api/food-donations/my-donations', {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        data.filter((d: any) => d.status === 'requested').slice(0, 5).forEach((d: any) => {
+                            items.push({ id: d._id, message: `New request for "${d.foodType}"`, timeAgo: timeAgo(d.requestedAt || d.updatedAt), type: 'request' });
+                        });
+                        data.filter((d: any) => d.status === 'completed').slice(0, 3).forEach((d: any) => {
+                            items.push({ id: d._id + '_c', message: `"${d.foodType}" was picked up successfully`, timeAgo: timeAgo(d.completedAt || d.updatedAt), type: 'donation' });
+                        });
+                    }
+                } else if (user.role === 'recipient') {
+                    const res = await fetch('/api/food-donations/my-requests', {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        data.filter((d: any) => d.status === 'confirmed').slice(0, 3).forEach((d: any) => {
+                            items.push({ id: d._id, message: `Donor confirmed your request for "${d.foodType}"`, timeAgo: timeAgo(d.confirmedAt || d.updatedAt), type: 'request' });
+                        });
+                        data.filter((d: any) => d.status === 'in_transit').slice(0, 3).forEach((d: any) => {
+                            items.push({ id: d._id + '_t', message: `Your food "${d.foodType}" is on the way!`, timeAgo: timeAgo(d.inTransitAt || d.updatedAt), type: 'donation' });
+                        });
+                    }
+                } else if (user.role === 'volunteer') {
+                    const res = await fetch('/api/food-donations/volunteer-feed', {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        data.filter((d: any) => d.status === 'confirmed').slice(0, 5).forEach((d: any) => {
+                            items.push({ id: d._id, message: `New pickup available: "${d.foodType}" — ${d.servings} servings`, timeAgo: timeAgo(d.confirmedAt || d.createdAt), type: 'donation' });
+                        });
+                    }
+                }
+                setNotifications(items);
+                setNotifsLoaded(true);
+            } catch {}
+        };
+        fetchNotifs();
+        const interval = setInterval(fetchNotifs, 60_000);
+        return () => clearInterval(interval);
+    }, [user, notifsLoaded]);
 
     useEffect(() => {
         navigator.geolocation?.getCurrentPosition(
@@ -195,7 +254,7 @@ const Header = () => {
                                 <div className="relative">
                                     <button onClick={() => setIsNotificationOpen(o=>!o)} className="relative p-2 text-gray-500 hover:text-green-600 transition-colors">
                                         <Bell className="w-5 h-5" />
-                                        <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">{notifications.length}</span>
+                                        {notifications.length > 0 && <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">{notifications.length}</span>}
                                     </button>
                                     {isNotificationOpen && (
                                         <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
@@ -204,15 +263,25 @@ const Header = () => {
                                                 <button onClick={() => setIsNotificationOpen(false)}><X className="w-4 h-4 text-gray-400"/></button>
                                             </div>
                                             <div className="max-h-72 overflow-y-auto">
-                                                {notifications.map(n => (
+                                                {notifications.length === 0 ? (
+                                                    <div className="px-5 py-8 text-center">
+                                                        <p className="text-2xl mb-2">🔔</p>
+                                                        <p className="text-sm text-gray-500 font-medium">No new notifications</p>
+                                                        <p className="text-xs text-gray-400 mt-1">You are all caught up!</p>
+                                                    </div>
+                                                ) : notifications.map(n => (
                                                     <div key={n.id} className="px-5 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                                        <p className="text-xs font-bold mb-0.5" style={{color: n.type === 'request' ? '#8b5cf6' : '#16a34a'}}>
+                                                            {n.type === 'request' ? '📤 New Request' : '🍱 Donation Update'}
+                                                        </p>
                                                         <p className="text-sm text-gray-800 font-medium">{n.message}</p>
                                                         <p className="text-xs text-gray-400 mt-0.5">{n.timeAgo}</p>
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="bg-gray-50 px-5 py-2 border-t border-gray-100">
-                                                <button className="text-xs text-green-600 hover:text-green-700 font-semibold">View all</button>
+                                            <div className="bg-gray-50 px-5 py-2 border-t border-gray-100 flex items-center justify-between">
+                                                <button className="text-xs text-green-600 hover:text-green-700 font-semibold" onClick={() => navigate(getDashboardRoute(user?.role || ''))}>View dashboard</button>
+                                                <button className="text-xs text-gray-400 hover:text-gray-600" onClick={() => setNotifsLoaded(false)}>↻ Refresh</button>
                                             </div>
                                         </div>
                                     )}
@@ -222,18 +291,31 @@ const Header = () => {
                             {/* Profile + Logout */}
                             {user ? (
                                 <div className="flex items-center gap-2">
-                                    {/* Profile button — role-colored with initials */}
+                                    {/* Profile button — role-specific */}
                                     <button className="header-profile-btn" onClick={handleProfileClick}
                                         style={{ background: profileHov ? roleColor.hover : roleColor.bg, color:'#fff' }}
                                         onMouseEnter={() => setProfileHov(true)}
                                         onMouseLeave={() => setProfileHov(false)}>
-                                        {/* Role icon */}
                                         {user.role === 'donor'     && <Heart className="w-4 h-4"/>}
                                         {user.role === 'recipient' && <MapPin className="w-4 h-4"/>}
                                         {user.role === 'volunteer' && <Truck  className="w-4 h-4"/>}
                                         {!['donor','recipient','volunteer'].includes(user.role) && <User className="w-4 h-4"/>}
                                         <span className="hidden sm:inline font-bold">{initials}</span>
-                                        <span className="hidden md:inline text-sm opacity-90">· {user.name?.split(' ')[0] || 'Profile'}</span>
+                                        <span className="hidden md:inline text-sm font-semibold opacity-90">
+                                            · {user.name?.split(' ')[0] || 'Profile'}
+                                        </span>
+                                        {/* Role badge */}
+                                        <span onClick={(e) => { e.stopPropagation(); navigate(getDashboardRoute(user.role)); }}
+                                            style={{
+                                                fontSize:'0.6rem', fontWeight:700, padding:'2px 6px',
+                                                borderRadius:99, background:'rgba(255,255,255,0.22)',
+                                                border:'1px solid rgba(255,255,255,0.3)',
+                                                lineHeight:1.4, letterSpacing:'0.04em',
+                                                textTransform:'uppercase' as const,
+                                                display: 'inline-block', cursor:'pointer',
+                                            }} className="hidden lg:inline">
+                                            {user.role === 'donor' ? '🌿 Donor' : user.role === 'recipient' ? '🍱 Recipient' : user.role === 'volunteer' ? '🚴 Volunteer' : user.role}
+                                        </span>
                                     </button>
 
                                     {/* Logout button — clean minimal style */}
